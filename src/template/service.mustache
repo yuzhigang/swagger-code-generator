@@ -1,0 +1,73 @@
+import request from '@/utils/request';
+import {
+  CreateDeviceDto,
+  DeviceDto,
+  LocationDto,
+  DriverUsageType,
+  DeviceDtoPagedResultDto,
+  UpdateDeviceDto
+} from './index.defs';
+
+export default class DeviceService {
+  static async device(data: CreateDeviceDto) {
+    let url = '/api/app/device';
+    return request<DeviceDto>(url, {
+      method: 'post',
+      params,
+      data
+    });
+  }
+  static async device1(
+    params: {
+      isActive?: boolean;
+      usageType?: DriverUsageType;
+      sorting?: string;
+      skipCount?: number;
+      maxResultCount?: number;
+    } = {} as any
+  ) {
+    let url = '/api/app/device';
+    return request<DeviceDtoPagedResultDto>(url, {
+      method: 'get',
+      params
+    });
+  }
+  static async device2(
+    params: {
+      id: string;
+    } = {} as any,
+    data: UpdateDeviceDto
+  ) {
+    let url = '/api/app/device/{id}';
+    url = url.replace('{id}', params.id);
+    return request<DeviceDto>(url, {
+      method: 'put',
+      params,
+      data
+    });
+  }
+  static async device3(
+    params: {
+      id: string;
+    } = {} as any
+  ) {
+    let url = '/api/app/device/{id}';
+    url = url.replace('{id}', params.id);
+    return request<any>(url, {
+      method: 'delete',
+      params
+    });
+  }
+  static async device4(
+    params: {
+      id: string;
+    } = {} as any
+  ) {
+    let url = '/api/app/device/{id}';
+    url = url.replace('{id}', params.id);
+    return request<DeviceDto>(url, {
+      method: 'get',
+      params
+    });
+  }
+}
