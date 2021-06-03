@@ -1,12 +1,11 @@
-import { IRequestMethod } from './swaggerInterfaces'
 
 export interface ISwaggerOptions {
   extraImports?: string[]
-  isUmiRequest?: boolean
-  includeServiceHeaderSource?: boolean
   serviceNameSuffix?: string
+  serviceTemplateFile?: string
+  definitionTemplateFile?: string
   enumNamePrefix?: string
-  methodNameMode?: 'operationId' | 'path' | 'shortOperationId' | ((reqProps: IRequestMethod) => string)
+  // methodNameMode?: 'operationId' | 'path' | 'shortOperationId' | ((reqProps: IRequestMethod) => string)
   outputDir?: string
   fileName?: string
   remoteUrl?: string
