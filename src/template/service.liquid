@@ -1,0 +1,52 @@
+import request from '@/utils/request';
+import {
+  {% for t in importTypes %}
+  {{t}},
+  {% endfor %}
+} from './definitions';
+
+export default class {{name}}Service {
+  {% for p in paths %}
+    static async {{p.operationId}}(
+       {%- for pathParam in p.pathParams -%}
+        {{pathParam.name  }}:{{pathParam.modelType}},
+       {%- endfor -%}
+
+      {% if p.queryParams.length > 0 %}
+      query:{
+        {%- for queryParam in p.queryParams -%}
+          {{queryParam.name }}
+          {%- unless queryParam.required -%} ?
+          {%- endunless -%}
+          :{{queryParam.modelType}},
+         {%- endfor -%}
+      },
+      {% endif %}
+
+      {%- for bodyParam in p.bodyParams -%}
+      {{bodyParam.name}}: {{bodyParam.modelType}}
+     {%- endfor -%}
+    ) {
+      {% if p.pathParams.length > 0 %}
+      const url = `{{p.path | replace: '{','${'}}`
+      {% else %}
+      const url = '{{p.path}}'
+      {% endif -%}
+      return request
+        {%- if p.responseType -%}
+          <{{p.responseType}}>
+        {%- endif -%}
+        (url, {
+        method: '{{p.method}}',
+        {%- if p.queryParams.length > 0 -%}
+        params: query,
+        {%- endif -%}
+        {%- if p.bodyParams.length > 0 -%}
+           {%- for bodyParam in p.bodyParams -%}
+        data: {{bodyParam.name}},
+         {%- endfor -%}
+        {%- endif -%}
+      });
+    }
+  {% endfor -%}
+}

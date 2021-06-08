@@ -1,15 +1,36 @@
-import { OpenAPI, OpenAPIV2, OpenAPIV3 } from "openapi-types";
-import { IDocument, IPath, IParameter, IDefinition, IProperty, IService } from "./swaggerInterfaces";
+import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
+import { IDocument, IPath, IParameter, IDefinition, IProperty, IService } from './swaggerInterfaces'
 import { refClassName, toBaseType, RemoveSpecialCharacters } from './utils'
 import camelcase from 'camelcase'
 
-const baseMethods = ["post", "get", "delete", "put"]
+const baseMethods = ['post', 'get', 'delete', 'put']
 
-function normalizeV2Property(name: string, item: OpenAPIV2.SchemaObject) {
+//     "policies": {
+//       "type": "object",
+//       "additionalProperties": {
+//         "type": "boolean"
+//       }
+//     }
+
+// "kind": {
+//   "format": "int32",
+//   "description": "描述是否是天车（行车）或台车。",
+//   "enum": [
+//     0,
+//     1
+//   ],
+//   "type": "integer"
+// },
+
+// "material": {
+//   "$ref": "#/definitions/AuxMaterialDto"
+// },
+function normalizeV2Property(name: string, item: OpenAPIV2.SchemaObject, required: string[]) {
   const property: IProperty = {
     name: name,
     modelType: 'object',
-    description: item.description
+    nullable: required.indexOf(name) < 0,
+    description: item.description,
   }
   if (item.type === 'array') {
     if (item.items.$ref) {
@@ -17,18 +38,38 @@ function normalizeV2Property(name: string, item: OpenAPIV2.SchemaObject) {
     } else {
       property.modelType = toBaseType(item.items.type) + '[]'
     }
+  } else if (item.type === 'object') {
+    property.modelType = 'any'
+  } else if (item.$ref) {
+    property.modelType = refClassName(item.$ref)
+  } else if (item.enum) {
+    property.modelType = normalizeV2EnumProperty(item)
   } else {
     property.modelType = toBaseType(item.type as string)
   }
   return property
 }
-
-function normalizeV2ReferenceObject(item: OpenAPIV2.ReferenceObject) {
+// SampleKind": {
+//   "format": "int32",
+//   "enum": [
+//     0,
+//     1,
+//     2
+//   ],
+//   "type": "integer"
+// }
+function normalizeV2EnumProperty(item: OpenAPIV2.SchemaObject) {
+  if (item.type === 'string') {
+    return item.enum!.map((t: any) => `'${t}'`).join(' | ')
+  } else return item.enum!.join(' | ')
 }
 
+function normalizeV2ReferenceObject(item: OpenAPIV2.ReferenceObject) {}
+
+//
 function normalizeV2Parameter(item: OpenAPIV2.Parameter) {
   const param: IParameter = {
-    name: item.name.split('.').pop(),
+    name: camelcase(item.name.split('.').pop()),
     in: item.in,
     // type: item.type,
     description: item.description,
@@ -54,12 +95,18 @@ function normalizeV2Parameter(item: OpenAPIV2.Parameter) {
     }
   } else if (item.items) {
     param.modelType = item.items.$ref ? refClassName(item.items.$ref) + '[]' : toBaseType(item.items.type) + '[]'
+  } else if (item.enum) {
+    if (item.type === 'string') {
+      param.modelType = item.enum!.map((t: any) => `'${t}'`).join(' | ')
+    } else {
+      param.modelType = item.enum!.join(' | ')
+    }
   }
   // 基本类型
   else {
     param.modelType = toBaseType(item.type)
   }
-  return param;
+  return param
 }
 
 export function groupPathsToServices(paths: IPath[]): IService[] {
@@ -69,9 +116,11 @@ export function groupPathsToServices(paths: IPath[]): IService[] {
       services[path.tag] = { name: path.tag, paths: [], importTypes: [] }
     }
     services[path.tag].paths.push(path)
-    const type = path.responseType.replace('[]', '')
-    if (services[path.tag].importTypes.indexOf(type) < 0) {
-      services[path.tag].importTypes.push(type)
+    if (path.responseType) {
+      const type = path.responseType.replace('[]', '')
+      if (services[path.tag].importTypes.indexOf(type) < 0) {
+        services[path.tag].importTypes.push(type)
+      }
     }
     path.bodyParams.forEach(p => {
       const type = p.modelType.replace('[]', '')
@@ -80,24 +129,30 @@ export function groupPathsToServices(paths: IPath[]): IService[] {
       }
     })
   })
-  return Object.values(services);
+  return Object.values(services)
 }
 
+/**
+ * 统一文档的结构。
+ * @param document
+ * @returns
+ */
 export function normalizeV2Document(document: OpenAPIV2.Document): IDocument {
-  let normalizeDocument: IDocument = {
-    schema: document.schemes[0],
+  const normalizeDocument: IDocument = {
+    schema: document.schemes[0] || 'https',
     version: document.swagger,
     host: document.host,
     definitions: [],
-    services: []
+    services: [],
   }
 
   // 解析paths的信息。
   const paths: IPath[] = []
   Object.entries<OpenAPIV2.PathItemObject>(document.paths).forEach(([path, pathItem]) => {
     Object.entries(pathItem).forEach(([method, methodItem]) => {
-      if (baseMethods.indexOf(method) >= 0 && methodItem as OpenAPIV2.OperationObject != null) {
+      if (baseMethods.indexOf(method) >= 0 && (methodItem as OpenAPIV2.OperationObject) != null) {
         const operationObject = methodItem as OpenAPIV2.OperationObject
+        // operationId即为控制器中Action的方法名
         let pathData: IPath = {
           path: path,
           operationId: camelcase(operationObject.operationId),
@@ -106,95 +161,145 @@ export function normalizeV2Document(document: OpenAPIV2.Document): IDocument {
           responseType: getResponseType(operationObject.responses).responseType,
           pathParams: [],
           queryParams: [],
-          bodyParams: []
+          bodyParams: [],
         }
         operationObject.parameters?.forEach(p => {
-          if (p as OpenAPIV2.Parameter != null) {
-            const param = normalizeV2Parameter(p as OpenAPIV2.Parameter);
-            if (param.in === "query") {
+          if ((p as OpenAPIV2.Parameter) != null) {
+            const param = normalizeV2Parameter(p as OpenAPIV2.Parameter)
+            if (param.in === 'query') {
               pathData.queryParams.push(param)
-            } else if (param.in === "body") {
+            } else if (param.in === 'body') {
               pathData.bodyParams.push(param)
-            } else if (param.in === "path") {
+            } else if (param.in === 'path') {
               pathData.pathParams.push(param)
             }
           }
-        });
+        })
         paths.push(pathData)
       }
-    });
-  });
+    })
+  })
   normalizeDocument.services = groupPathsToServices(paths)
 
   // 解析definitions的信息
   Object.entries<OpenAPIV2.SchemaObject>(document.definitions).forEach(([modelType, modelInfo]) => {
     let definition: IDefinition = {
-      name: modelType,
-      type: modelInfo.type as string,
+      name: modelType, // SampleKind
+      type: modelInfo.type as string, // integer|string
       properties: [],
+      values: [], // 1,2,3
     }
-    Object.entries<OpenAPIV2.SchemaObject>(modelInfo.properties).forEach(([propertyKey, propertyInfo]) => {
-      definition.properties.push(normalizeV2Property(propertyKey, propertyInfo))
-    })
+
+    // 不设置为：options.UseInlineDefinitionsForEnums(); enum会是一个单独的enum
+    // enum类型没有properties属性
+    // SampleKind": {
+    //   "format": "int32",
+    //   "enum": [
+    //     0,
+    //     1,
+    //     2
+    //   ],
+    //   "type": "integer"
+    // }
+
+    // "ApplicationAuthConfigurationDto": {
+    //   "type": "object",
+    //   "properties": {
+    //     "policies": {
+    //       "type": "object",
+    //       "additionalProperties": {
+    //         "type": "boolean"
+    //       }
+    //     },
+    //     "grantedPolicies": {
+    //       "type": "object",
+    //       "additionalProperties": {
+    //         "type": "boolean"
+    //       },
+    // 当设置   options.UseInlineDefinitionsForEnums(); 后，所有的menu类型，不再有schema，而是一个普通类型，增加了 enum字段。
+    // "kind": {
+    //   "format": "int32",
+    //   "description": "描述是否是天车（行车）或台车。",
+    //   "enum": [
+    //     0,
+    //     1
+    //   ],
+    //   "type": "integer"
+    // },
+    //     }
+    //   }
+    // },
+    if (modelInfo.properties) {
+      Object.entries<OpenAPIV2.SchemaObject>(modelInfo.properties).forEach(([propertyKey, propertyInfo]) => {
+        definition.properties.push(normalizeV2Property(propertyKey, propertyInfo, modelInfo.required || []))
+      })
+    } else if (modelInfo.enum) {
+      // SampleKind": {
+      //   "format": "int32",
+      //   "enum": [
+      //     0,
+      //     1,
+      //     2
+      //   ],
+      //   "type": "integer"
+      // }
+      modelInfo.enum.forEach(v => {
+        definition.values.push(v)
+      })
+    }
     normalizeDocument.definitions.push(definition)
   })
-  return normalizeDocument;
+  return normalizeDocument
 }
 
-
-export function getResponseType(responses: OpenAPIV2.ResponsesObject, isV3: boolean = false): { responseType: string, isRef: boolean } {
+// "200": {
+//   "description": "Success",
+//   "schema": {
+//     "$ref": "#/definitions/AbpLoginResult"
+//   }
+// },
+// "403": {
+//   "description": "Forbidden",
+//   "schema": {
+//     "$ref": "#/definitions/RemoteServiceErrorResponse"
+//   }
+// }
+export function getResponseType(
+  responses: OpenAPIV2.ResponsesObject,
+  isV3: boolean = false
+): { responseType: string; isRef: boolean } {
   // It does not allow the schema defined directly, but only the primitive type is allowed.
-  let result: string = 'any'
+  let responseType: string | null = null
   let isRef = false
   // 提取Schema
   const successStatusCode = Object.keys(responses).find(statusCode => statusCode.match(/20[0-4]$/))
   if (!successStatusCode) {
-    return { responseType: result, isRef }
+    const errorStatusCode = Object.keys(responses).find(statusCode => !statusCode.match(/20[0-4]$/))
+    return { responseType: responseType, isRef }
   }
-  let resSchema = null
-  if (responses[successStatusCode]) {
-    if (isV3 === true) {
-      if (
-        responses[successStatusCode].content &&
-        responses[successStatusCode].content['application/json'] &&
-        responses[successStatusCode].content['application/json'].schema
-      )
-        resSchema = responses[successStatusCode].content['application/json'].schema
-    } else {
-      if (responses[successStatusCode].schema) resSchema = responses[successStatusCode].schema
-    }
-  }
+  let resSchema = responses[successStatusCode].schema
   if (!resSchema) {
-    return { responseType: result, isRef }
+    return { responseType: responseType, isRef }
   }
 
-  let checkType = resSchema.type
-  let format = resSchema.format
   // 如果是数组
-  if (checkType === 'array' || resSchema.items) {
+  if (resSchema.items) {
     if (resSchema.items.$ref) {
       const refType = refClassName(resSchema.items.$ref)
       isRef = true
-      result = refType + '[]'
+      responseType = refType + '[]'
     } else {
       const refType = toBaseType(resSchema.items.type, resSchema.items.format)
-      result = refType + '[]'
+      responseType = refType + '[]'
     }
   } else if (resSchema.$ref) {
     // 如果是引用对象
-    result = refClassName(resSchema.$ref) || 'any'
+    responseType = refClassName(resSchema.$ref) || 'any'
     isRef = true
   } else {
-    result = checkType
-    result = toBaseType(result, format)
+    responseType = toBaseType(resSchema.type, resSchema.format)
   }
-
-  if (result == 'object') {
-    result = 'any'
-  } else if (result == 'array') {
-    result = 'any[]'
-  }
-  return { responseType: result, isRef }
+  return { responseType: responseType, isRef }
 }
 
 // export function normalizeV3Document(document: OpenAPIV3.Document): IDocument {

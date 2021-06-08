@@ -56,7 +56,7 @@ export function getGenericsClassNames(definitionClassName: string): string {
 }
 
 /**
- * 获取引用类型
+ * 获取引用类型,类似"#/definitions/RemoteServiceErrorResponse"
  * @param s
  */
 export function refClassName(s: string): string {

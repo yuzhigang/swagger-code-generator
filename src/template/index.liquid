@@ -1,0 +1,9 @@
+{%- for s in services -%}
+import {{s.name}}Service from './{{s.name}}Service'
+{% endfor %}
+
+export default {
+ {%- for s in services -%}
+  {{s.name}}Service,
+ {% endfor %}
+}

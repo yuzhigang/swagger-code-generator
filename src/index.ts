@@ -1,30 +1,31 @@
 #!/usr/bin/env node
 import prettier from 'prettier'
-import mustache from 'mustache';
+// import liquid from 'liquid'
+import { Liquid } from 'liquidjs'
 import * as fs from 'fs'
 import * as path from 'path'
-import yargs from 'yargs';
+import yargs from 'yargs'
 
-
-import { OpenAPI, OpenAPIV2 } from "openapi-types";
+import { OpenAPI, OpenAPIV2 } from 'openapi-types'
 import { normalizeV2Document } from './parser'
-import SwaggerParser from "@apidevtools/swagger-parser";
+import SwaggerParser from '@apidevtools/swagger-parser'
 import { ISwaggerOptions, IInclude, IDefinitionClasses, IDefinitionEnums } from './baseInterfaces'
 import { isOpenApi3, findDeepRefs, setDefinedGenericTypes, getDefinedGenericTypes, trimString } from './utils'
-import { IDocument } from './swaggerInterfaces';
+import { IDocument } from './swaggerInterfaces'
+const engine = new Liquid()
 
 const args = yargs.options({
-  'url': { type: 'string', demandOption: true, alias: 'u' },
+  url: { type: 'string', demandOption: false, alias: 'u' },
   'service-template': { type: 'string', demandOption: false, alias: 'st' },
   'definition-template': { type: 'string', demandOption: false, alias: 'dt' },
-  'output': { type: 'string', demandOption: false, alias: 'o' },
-}).argv;
+  output: { type: 'string', demandOption: false, alias: 'o' },
+}).argv
 
-const options: ISwaggerOptions = {
+const defaultOptions: ISwaggerOptions = {
   // isUmiRequest: true,
   // includeServiceHeaderSource: false, // 是否包含头文件
-  serviceTemplateFile: args['service-template'] || './template/service.mustache',
-  definitionTemplateFile: args['definition-template'] || './template/definitions.mustache',
+  serviceTemplateFile: args['service-template'] || path.join(__dirname, './template/service.liquid'),
+  definitionTemplateFile: args['definition-template'] || path.join(__dirname, './template/definitions.liquid'),
   serviceNameSuffix: 'Service',
   remoteUrl: args.url || '',
   enumNamePrefix: 'Enum',
@@ -41,41 +42,51 @@ const options: ISwaggerOptions = {
   extendGenericType: [],
   multipleFileMode: false,
   sharedServiceOptions: false,
-  useHeaderParameters: false
+  useHeaderParameters: false,
 }
 
 /** main */
-export async function codegen() {
-  // options = { ...defaultOptions, ...options }
-  let swaggerDocument = await SwaggerParser.parse(options.remoteUrl);
+export async function codegen(options?: ISwaggerOptions) {
+  options = { ...defaultOptions, ...options }
+  let swaggerDocument = await SwaggerParser.parse(options.remoteUrl)
   let unifyDocument: IDocument
-  if (swaggerDocument as OpenAPIV2.Document != null) {
+  if ((swaggerDocument as OpenAPIV2.Document) != null) {
     unifyDocument = normalizeV2Document(swaggerDocument as OpenAPIV2.Document)
-    console.info('creating definitions  file...')
+    writeFile(options.outputDir || '', 'swagger.json', JSON.stringify(unifyDocument, null, 2))
+    // console.info('creating definitions  file...')
     fs.readFile(path.resolve(options.definitionTemplateFile), function (err, data) {
-      if (err) throw err;
-      const definitions = mustache.render(data.toString(), unifyDocument)
-      writeFile(options.outputDir || '', "definitions.ts", format(definitions, options))
-    });
-    console.info('creating service index file...')
-    fs.readFile(path.resolve("./template/index.mustache"), function (err, data) {
-      if (err) throw err;
-      const index = mustache.render(data.toString(), unifyDocument)
-      writeFile(options.outputDir || '', "index.ts", format(index, options))
-    });
+      if (err) throw err
+      // const definitions = liquid.render(data.toString(), unifyDocument)
+      const definitions = engine.parseAndRender(data.toString(), unifyDocument).then(output => {
+        writeFile(options.outputDir || '', 'definitions.ts', format(output, options))
+      })
+    })
+    // console.info('creating service index file...')
+    fs.readFile(path.resolve(path.join(__dirname, './template/index.liquid')), function (err, data) {
+      if (err) throw err
+      // const index = liquid.render(data.toString(), unifyDocument)
+      engine.parseAndRender(data.toString(), unifyDocument).then(output => {
+        writeFile(options.outputDir || '', 'index.ts', format(output, options))
+      })
+
+      // writeFile(options.outputDir || '', 'index.ts', format(index, options))
+    })
     console.info('creating service files...')
     fs.readFile(path.resolve(options.serviceTemplateFile), function (err, data) {
-      if (err) throw err;
-      const content = data.toString();
+      if (err) throw err
+      const content = data.toString()
       unifyDocument.services.forEach(s => {
-        const service = mustache.render(content, s)
-        writeFile(options.outputDir || '', `${s.name}Service.ts`, format(service, options))
+        // const service = liquid.render(content, s)
+        engine.parseAndRender(content, s).then(output => {
+          writeFile(options.outputDir || '', `${s.name}Service.ts`, format(output, options))
+        })
+        // writeFile(options.outputDir || '', `${s.name}Service.ts`, format(service, options))
       })
-    });
+    })
     console.info('finished...')
   }
 }
-codegen()
+// codegen()
 function writeFile(fileDir: string, name: string, data: any) {
   if (!fs.existsSync(fileDir)) {
     fs.mkdirSync(fileDir)
@@ -98,7 +109,7 @@ function format(text: string, options: ISwaggerOptions) {
     trailingComma: 'none',
     jsxBracketSameLine: false,
     semi: false,
-    singleQuote: true
+    singleQuote: true,
   })
   // return text
 }

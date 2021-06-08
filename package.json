@@ -1,19 +1,21 @@
 {
-  "name": "swagger-code-gen-mustache",
-  "version": "1.0.0",
+  "name": "swagger-code-gen-liquid",
+  "version": "1.0.1",
   "main": "./dist/index",
   "typings": "./dist/",
   "scripts": {
+    "test": "node ./test/swagger.parser.test.js",
+    "start": "tsc -p ./src",
     "build": "npm run clean && tsc -p ./src && npm run copy-files",
     "clean": "rimraf dist/",
-    "copy-files": "copyfiles -u 1 src/**/*.mustache dist/"
+    "copy-files": "copyfiles -u 1 src/**/*.liquid dist/"
   },
   "bin": {
     "scg": "./dist/index.js"
   },
   "keywords": [
     "template",
-    "mustache",
+    "liquid",
     "swagger",
     "typescript",
     "generator",
@@ -33,16 +35,16 @@
   "dependencies": {
     "@apidevtools/swagger-parser": "^10.0.2",
     "camelcase": "^6.2.0",
-    "mustache": "^4.1.0",
     "prettier": "^2.2.1",
     "yargs": "^16.2.0"
   },
   "devDependencies": {
-    "@types/mustache": "^4.1.0",
+    "@types/liquid": "^4.1.1",
     "@types/node": "^12.7.2",
-    "@types/prettier": "^1.12.2",
+    "@types/prettier": "^1.19.1",
     "@types/yargs": "^15.0.12",
     "copyfiles": "^2.4.1",
+    "liquidjs": "^9.25.0",
     "openapi-types": "^7.2.2",
     "rimraf": "^3.0.2",
     "tslint": "^5.10.0",
