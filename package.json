@@ -1,6 +1,6 @@
 {
   "name": "swagger-code-gen-liquid",
-  "version": "1.0.1",
+  "version": "1.0.4",
   "main": "./dist/index",
   "typings": "./dist/",
   "scripts": {
@@ -35,16 +35,15 @@
   "dependencies": {
     "@apidevtools/swagger-parser": "^10.0.2",
     "camelcase": "^6.2.0",
+    "liquidjs": "^9.25.0",
     "prettier": "^2.2.1",
     "yargs": "^16.2.0"
   },
   "devDependencies": {
-    "@types/liquid": "^4.1.1",
     "@types/node": "^12.7.2",
     "@types/prettier": "^1.19.1",
     "@types/yargs": "^15.0.12",
     "copyfiles": "^2.4.1",
-    "liquidjs": "^9.25.0",
     "openapi-types": "^7.2.2",
     "rimraf": "^3.0.2",
     "tslint": "^5.10.0",
