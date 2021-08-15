@@ -2,11 +2,11 @@ import request from '@/utils/request'
 import { AbpLoginResult, UserLoginInfo } from './definitions'
 
 export default class LoginService {
-  static async login(body: UserLoginInfo) {
+  static async login(input: UserLoginInfo) {
     const url = '/api/account/login'
     return request<AbpLoginResult>(url, {
       method: 'post',
-      data: body
+      data: input
     })
   }
 
@@ -17,11 +17,11 @@ export default class LoginService {
     })
   }
 
-  static async checkPassword(body: UserLoginInfo) {
+  static async checkPassword(input: UserLoginInfo) {
     const url = '/api/account/check-password'
     return request<AbpLoginResult>(url, {
       method: 'post',
-      data: body
+      data: input
     })
   }
 }

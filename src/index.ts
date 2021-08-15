@@ -6,8 +6,8 @@ import * as fs from 'fs'
 import * as path from 'path'
 import yargs from 'yargs'
 
-import { OpenAPI, OpenAPIV2 } from 'openapi-types'
-import { normalizeV2Document } from './parser'
+import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
+import { normalizeV2Document, normalizeV3Document } from './parser'
 import SwaggerParser from '@apidevtools/swagger-parser'
 import { ISwaggerOptions, IInclude, IDefinitionClasses, IDefinitionEnums } from './baseInterfaces'
 import { isOpenApi3, findDeepRefs, setDefinedGenericTypes, getDefinedGenericTypes, trimString } from './utils'
@@ -44,48 +44,90 @@ const defaultOptions: ISwaggerOptions = {
   sharedServiceOptions: false,
   useHeaderParameters: false,
 }
-
-/** main */
 export async function codegen(options?: ISwaggerOptions) {
   options = { ...defaultOptions, ...options }
   let swaggerDocument = await SwaggerParser.parse(options.remoteUrl)
-  let unifyDocument: IDocument
-  if ((swaggerDocument as OpenAPIV2.Document) != null) {
-    unifyDocument = normalizeV2Document(swaggerDocument as OpenAPIV2.Document)
-    writeFile(options.outputDir || '', 'swagger.json', JSON.stringify(unifyDocument, null, 2))
-    // console.info('creating definitions  file...')
-    fs.readFile(path.resolve(options.definitionTemplateFile), function (err, data) {
-      if (err) throw err
-      // const definitions = liquid.render(data.toString(), unifyDocument)
-      const definitions = engine.parseAndRender(data.toString(), unifyDocument).then(output => {
-        writeFile(options.outputDir || '', 'definitions.ts', format(output, options))
-      })
-    })
-    // console.info('creating service index file...')
-    fs.readFile(path.resolve(path.join(__dirname, './template/index.liquid')), function (err, data) {
-      if (err) throw err
-      // const index = liquid.render(data.toString(), unifyDocument)
-      engine.parseAndRender(data.toString(), unifyDocument).then(output => {
-        writeFile(options.outputDir || '', 'index.ts', format(output, options))
-      })
-
-      // writeFile(options.outputDir || '', 'index.ts', format(index, options))
-    })
-    console.info('creating service files...')
-    fs.readFile(path.resolve(options.serviceTemplateFile), function (err, data) {
-      if (err) throw err
-      const content = data.toString()
-      unifyDocument.services.forEach(s => {
-        // const service = liquid.render(content, s)
-        engine.parseAndRender(content, s).then(output => {
-          writeFile(options.outputDir || '', `${s.name}Service.ts`, format(output, options))
-        })
-        // writeFile(options.outputDir || '', `${s.name}Service.ts`, format(service, options))
-      })
-    })
-    console.info('finished...')
+  if ('openapi' in swaggerDocument) {
+    codegenV3(swaggerDocument as OpenAPIV3.Document, options)
+  } else {
+    codegenV2(swaggerDocument as OpenAPIV2.Document, options)
   }
 }
+
+/** main */
+export async function codegenV2(swaggerDocument: OpenAPIV2.Document<{}>, options?: ISwaggerOptions) {
+  let unifyDocument = normalizeV2Document(swaggerDocument as OpenAPIV2.Document)
+  writeFile(options.outputDir || '', 'swagger.json', JSON.stringify(unifyDocument, null, 2))
+  // console.info('creating definitions  file...')
+  fs.readFile(path.resolve(options.definitionTemplateFile), function (err, data) {
+    if (err) throw err
+    // const definitions = liquid.render(data.toString(), unifyDocument)
+    const definitions = engine.parseAndRender(data.toString(), unifyDocument).then(output => {
+      writeFile(options.outputDir || '', 'definitions.ts', format(output, options))
+    })
+  })
+  // console.info('creating service index file...')
+  fs.readFile(path.resolve(path.join(__dirname, './template/index.liquid')), function (err, data) {
+    if (err) throw err
+    // const index = liquid.render(data.toString(), unifyDocument)
+    engine.parseAndRender(data.toString(), unifyDocument).then(output => {
+      writeFile(options.outputDir || '', 'index.ts', format(output, options))
+    })
+
+    // writeFile(options.outputDir || '', 'index.ts', format(index, options))
+  })
+  console.info('creating service files...')
+  fs.readFile(path.resolve(options.serviceTemplateFile), function (err, data) {
+    if (err) throw err
+    const content = data.toString()
+    unifyDocument.services.forEach(s => {
+      // const service = liquid.render(content, s)
+      engine.parseAndRender(content, s).then(output => {
+        writeFile(options.outputDir || '', `${s.name}Service.ts`, format(output, options))
+      })
+      // writeFile(options.outputDir || '', `${s.name}Service.ts`, format(service, options))
+    })
+  })
+  console.info('finished...')
+}
+
+/** main */
+export async function codegenV3(swaggerDocument: OpenAPIV3.Document<{}>, options?: ISwaggerOptions) {
+  let unifyDocument = normalizeV3Document(swaggerDocument as OpenAPIV3.Document)
+  writeFile(options.outputDir || '', 'swagger.json', JSON.stringify(unifyDocument, null, 2))
+  // console.info('creating definitions  file...')
+  fs.readFile(path.resolve(options.definitionTemplateFile), function (err, data) {
+    if (err) throw err
+    // const definitions = liquid.render(data.toString(), unifyDocument)
+    const definitions = engine.parseAndRender(data.toString(), unifyDocument).then(output => {
+      writeFile(options.outputDir || '', 'definitions.ts', format(output, options))
+    })
+  })
+  // console.info('creating service index file...')
+  fs.readFile(path.resolve(path.join(__dirname, './template/index.liquid')), function (err, data) {
+    if (err) throw err
+    // const index = liquid.render(data.toString(), unifyDocument)
+    engine.parseAndRender(data.toString(), unifyDocument).then(output => {
+      writeFile(options.outputDir || '', 'index.ts', format(output, options))
+    })
+
+    // writeFile(options.outputDir || '', 'index.ts', format(index, options))
+  })
+  console.info('creating service files...')
+  fs.readFile(path.resolve(options.serviceTemplateFile), function (err, data) {
+    if (err) throw err
+    const content = data.toString()
+    unifyDocument.services.forEach(s => {
+      // const service = liquid.render(content, s)
+      engine.parseAndRender(content, s).then(output => {
+        writeFile(options.outputDir || '', `${s.name}Service.ts`, format(output, options))
+      })
+      // writeFile(options.outputDir || '', `${s.name}Service.ts`, format(service, options))
+    })
+  })
+  console.info('finished...')
+}
+
 // codegen()
 function writeFile(fileDir: string, name: string, data: any) {
   if (!fs.existsSync(fileDir)) {

@@ -1,5 +1,5 @@
 import request from '@/utils/request'
-import { UserData, UserDataListResultDto, number } from './definitions'
+import { UserData, UserDataListResultDto } from './definitions'
 
 export default class UserLookupService {
   static async findById(id: string) {
@@ -26,7 +26,7 @@ export default class UserLookupService {
 
   static async getCount(query: { filter?: string }) {
     const url = '/api/identity/users/lookup/count'
-    return request<number>(url, {
+    return request(url, {
       method: 'get',
       params: query
     })

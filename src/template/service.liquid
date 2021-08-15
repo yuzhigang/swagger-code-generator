@@ -12,8 +12,9 @@ export default class {{name}}Service {
         {{pathParam.name  }}:{{pathParam.modelType}},
        {%- endfor -%}
 
-      {% if p.queryParams.length > 0 %}
-      query:{
+      {%- if p.queryParams.length > 0 -%}
+      query:
+      {
         {%- for queryParam in p.queryParams -%}
           {{queryParam.name }}
           {%- unless queryParam.required -%} ?
@@ -21,8 +22,10 @@ export default class {{name}}Service {
           :{{queryParam.modelType}},
          {%- endfor -%}
       },
-      {% endif %}
-
+      {%- endif -%}
+      {%- if p.queryRefs.length > 0 -%}
+        query: {{ p.queryRefs | join: " & " }},
+      {%- endif -%}
       {%- for bodyParam in p.bodyParams -%}
       {{bodyParam.name}}: {{bodyParam.modelType}}
      {%- endfor -%}
@@ -38,7 +41,7 @@ export default class {{name}}Service {
         {%- endif -%}
         (url, {
         method: '{{p.method}}',
-        {%- if p.queryParams.length > 0 -%}
+        {%- if p.queryParams.length > 0 or p.queryRefs.length > 0 -%}
         params: query,
         {%- endif -%}
         {%- if p.bodyParams.length > 0 -%}

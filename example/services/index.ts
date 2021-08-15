@@ -2,36 +2,19 @@ import AbpApiDefinitionService from './AbpApiDefinitionService'
 import AbpApplicationConfigurationService from './AbpApplicationConfigurationService'
 import AbpTenantService from './AbpTenantService'
 import AccountService from './AccountService'
-import AdditionService from './AdditionService'
-import BackgroundWorkerInstanceService from './BackgroundWorkerInstanceService'
-import BackgroundWorkerLogService from './BackgroundWorkerLogService'
-import ChannelService from './ChannelService'
-import CraneService from './CraneService'
+import AlarmReportService from './AlarmReportService'
+import AnalysisReportService from './AnalysisReportService'
+import DataFileService from './DataFileService'
 import DeviceService from './DeviceService'
-import DriverService from './DriverService'
+import EmailSettingsService from './EmailSettingsService'
 import FeaturesService from './FeaturesService'
-import HeatPlanService from './HeatPlanService'
-import IronBagService from './IronBagService'
-import JobPlanService from './JobPlanService'
-import LadleService from './LadleService'
-import LadleRecordService from './LadleRecordService'
-import LadleStateService from './LadleStateService'
-import LocationService from './LocationService'
 import LoginService from './LoginService'
-import MachineService from './MachineService'
-import MachineCardService from './MachineCardService'
-import MaintenancePlanService from './MaintenancePlanService'
-import MasterProductionPlanService from './MasterProductionPlanService'
-import MaterialService from './MaterialService'
 import PermissionsService from './PermissionsService'
-import ProcessCardService from './ProcessCardService'
-import ProductionPlanService from './ProductionPlanService'
+import PlanService from './PlanService'
 import ProfileService from './ProfileService'
+import ProjectService from './ProjectService'
 import RoleService from './RoleService'
-import SampleService from './SampleService'
-import TagService from './TagService'
-import TagDefinitionService from './TagDefinitionService'
-import TagValueService from './TagValueService'
+import StationService from './StationService'
 import TenantService from './TenantService'
 import UserService from './UserService'
 import UserLookupService from './UserLookupService'
@@ -41,36 +24,19 @@ export default {
   AbpApplicationConfigurationService,
   AbpTenantService,
   AccountService,
-  AdditionService,
-  BackgroundWorkerInstanceService,
-  BackgroundWorkerLogService,
-  ChannelService,
-  CraneService,
+  AlarmReportService,
+  AnalysisReportService,
+  DataFileService,
   DeviceService,
-  DriverService,
+  EmailSettingsService,
   FeaturesService,
-  HeatPlanService,
-  IronBagService,
-  JobPlanService,
-  LadleService,
-  LadleRecordService,
-  LadleStateService,
-  LocationService,
   LoginService,
-  MachineService,
-  MachineCardService,
-  MaintenancePlanService,
-  MasterProductionPlanService,
-  MaterialService,
   PermissionsService,
-  ProcessCardService,
-  ProductionPlanService,
+  PlanService,
   ProfileService,
+  ProjectService,
   RoleService,
-  SampleService,
-  TagService,
-  TagDefinitionService,
-  TagValueService,
+  StationService,
   TenantService,
   UserService,
   UserLookupService

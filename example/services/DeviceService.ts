@@ -1,52 +1,42 @@
 import request from '@/utils/request'
-import { DeviceDto, UpdateDeviceDto, CreateDeviceDto, DeviceDtoPagedResultDto } from './definitions'
+import { DeviceDto, SaveDeviceDto, DeviceDtoPagedResultDto, DeviceQueryDto } from './definitions'
 
 export default class DeviceService {
-  static async get(id: string) {
-    const url = `/api/gateway/device/${id}`
+  static async create(input: SaveDeviceDto) {
+    const url = '/api/app/device'
     return request<DeviceDto>(url, {
-      method: 'get'
+      method: 'post',
+      data: input
     })
   }
 
-  static async update(id: string, body: UpdateDeviceDto) {
-    const url = `/api/gateway/device/${id}`
+  static async getList(query: DeviceQueryDto) {
+    const url = '/api/app/device'
+    return request<DeviceDtoPagedResultDto>(url, {
+      method: 'get',
+      params: query
+    })
+  }
+
+  static async update(id: string, input: SaveDeviceDto) {
+    const url = `/api/app/device/${id}`
     return request<DeviceDto>(url, {
       method: 'put',
-      data: body
+      data: input
     })
   }
 
   static async delete(id: string) {
-    const url = `/api/gateway/device/${id}`
+    const url = `/api/app/device/${id}`
     return request(url, {
       method: 'delete'
     })
   }
 
-  static async create(body: CreateDeviceDto) {
-    const url = '/api/gateway/device'
+  static async get(id: string) {
+    const url = `/api/app/device/${id}`
     return request<DeviceDto>(url, {
-      method: 'post',
-      data: body
-    })
-  }
-
-  static async getList(query: {
-    isActive?: boolean
-    isGateway?: boolean
-    parentId?: string
-    key?: string
-    includeLocation?: boolean
-    includeTags?: boolean
-    sorting?: string
-    skipCount?: number
-    maxResultCount?: number
-  }) {
-    const url = '/api/gateway/device'
-    return request<DeviceDtoPagedResultDto>(url, {
-      method: 'get',
-      params: query
+      method: 'get'
     })
   }
 }

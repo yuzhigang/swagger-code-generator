@@ -9,19 +9,19 @@ export default class ProfileService {
     })
   }
 
-  static async update(body: UpdateProfileDto) {
+  static async update(input: UpdateProfileDto) {
     const url = '/api/identity/my-profile'
     return request<ProfileDto>(url, {
       method: 'put',
-      data: body
+      data: input
     })
   }
 
-  static async changePassword(body: ChangePasswordInput) {
+  static async changePassword(input: ChangePasswordInput) {
     const url = '/api/identity/my-profile/change-password'
     return request(url, {
       method: 'post',
-      data: body
+      data: input
     })
   }
 }

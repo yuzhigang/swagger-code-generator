@@ -10,12 +10,12 @@ export default class PermissionsService {
     })
   }
 
-  static async update(query: { providerName?: string; providerKey?: string }, body: UpdatePermissionsDto) {
+  static async update(query: { providerName?: string; providerKey?: string }, input: UpdatePermissionsDto) {
     const url = '/api/permission-management/permissions'
     return request(url, {
       method: 'put',
       params: query,
-      data: body
+      data: input
     })
   }
 }

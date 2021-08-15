@@ -5,6 +5,11 @@
           {{p.name}}{% if p.nullable %}?{% endif %}:{{p.modelType}}
         {% endfor %}
       }
+  {% else %}
+    {% if definition.type == 'object' %}
+      export interface {{definition.name}} {
+      }
+    {% endif %}
   {% endif %}
 
   {%- if definition.values.length > 0 %}

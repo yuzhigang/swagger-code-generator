@@ -1,6 +1,6 @@
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
 import { IDocument, IPath, IParameter, IDefinition, IProperty, IService } from './swaggerInterfaces'
-import { refClassName, toBaseType, RemoveSpecialCharacters } from './utils'
+import { refClassName, toBaseType, RemoveSpecialCharacters, isOpenApi3 } from './utils'
 import camelcase from 'camelcase'
 
 const baseMethods = ['post', 'get', 'delete', 'put']
@@ -39,7 +39,7 @@ function normalizeV2Property(name: string, item: OpenAPIV2.SchemaObject, require
       property.modelType = toBaseType(item.items.type) + '[]'
     }
   } else if (item.type === 'object') {
-    property.modelType = 'any'
+    property.modelType = '{}'
   } else if (item.$ref) {
     property.modelType = refClassName(item.$ref)
   } else if (item.enum) {
@@ -109,6 +109,58 @@ function normalizeV2Parameter(item: OpenAPIV2.Parameter) {
   return param
 }
 
+function normalizeV3Parameter(item: OpenAPIV3.ParameterObject) {
+  const param: IParameter = {
+    name: camelcase(item.name.split('.').pop()),
+    in: item.in,
+    // type: item.type,
+    description: item.description,
+    required: item.required,
+  }
+  if (item.schema) {
+    if ('type' in item.schema) {
+      const so = item.schema as OpenAPIV3.SchemaObject
+      // 是 array 类型
+      if ('items' in so) {
+        const aso = so as OpenAPIV3.ArraySchemaObject
+        if ('$ref' in aso.items) {
+          param.modelType = refClassName((aso.items as OpenAPIV3.ReferenceObject).$ref) + '[]'
+        } else {
+          // 是基本类型
+          // const nso = so as OpenAPIV3.SchemaObject
+          param.modelType = toBaseType(so.type) + '[]'
+        }
+      } else {
+        // 不是 array， 基本类型+ object类型
+        const nso = so as OpenAPIV3.NonArraySchemaObject
+        if (nso.type === 'object') {
+          // 似乎不存在这种类型
+        } else {
+          // 基本类型
+          param.modelType = toBaseType(nso.type)
+          // if (nso.enum) {
+          //   if(nso.type === 'string'){
+
+          //   }
+          // } else {
+          //   param.modelType = toBaseType(nso.type)
+          // }
+        }
+      }
+    } else if ('$ref' in item.schema) {
+      const ro = item.schema as OpenAPIV3.ReferenceObject
+      param.isRef = true
+      param.modelType = refClassName(ro.$ref)
+    }
+    return param
+  }
+}
+
+/**
+ * 将多个不同的路径合并到一个服务下。单独成为一个Service文件。
+ * @param paths
+ * @returns
+ */
 export function groupPathsToServices(paths: IPath[]): IService[] {
   let services: Record<string, IService> = {}
   paths.forEach(path => {
@@ -128,6 +180,13 @@ export function groupPathsToServices(paths: IPath[]): IService[] {
         services[path.tag].importTypes.push(type)
       }
     })
+
+    path.queryRefs.forEach(p => {
+      const type = p.replace('[]', '')
+      if (services[path.tag].importTypes.indexOf(type) < 0) {
+        services[path.tag].importTypes.push(type)
+      }
+    })
   })
   return Object.values(services)
 }
@@ -139,7 +198,7 @@ export function groupPathsToServices(paths: IPath[]): IService[] {
  */
 export function normalizeV2Document(document: OpenAPIV2.Document): IDocument {
   const normalizeDocument: IDocument = {
-    schema: document.schemes[0] || 'https',
+    schema: document.schemes?.[0] || 'https',
     version: document.swagger,
     host: document.host,
     definitions: [],
@@ -158,13 +217,13 @@ export function normalizeV2Document(document: OpenAPIV2.Document): IDocument {
           operationId: camelcase(operationObject.operationId),
           method: method,
           tag: operationObject.tags[0],
-          responseType: getResponseType(operationObject.responses).responseType,
+          responseType: getResponseTypeV2(operationObject.responses).responseType,
           pathParams: [],
           queryParams: [],
           bodyParams: [],
         }
         operationObject.parameters?.forEach(p => {
-          if ((p as OpenAPIV2.Parameter) != null) {
+          if ('in' in p) {
             const param = normalizeV2Parameter(p as OpenAPIV2.Parameter)
             if (param.in === 'query') {
               pathData.queryParams.push(param)
@@ -264,7 +323,7 @@ export function normalizeV2Document(document: OpenAPIV2.Document): IDocument {
 //     "$ref": "#/definitions/RemoteServiceErrorResponse"
 //   }
 // }
-export function getResponseType(
+export function getResponseTypeV2(
   responses: OpenAPIV2.ResponsesObject,
   isV3: boolean = false
 ): { responseType: string; isRef: boolean } {
@@ -302,13 +361,208 @@ export function getResponseType(
   return { responseType: responseType, isRef }
 }
 
-// export function normalizeV3Document(document: OpenAPIV3.Document): IDocument {
-//   let normalizeDocument: IDocument = {
-//     schema: document.openapi,
-//     version: document.swagger,
-//     host: document.host,
-//     definitions: [],
-//     paths: []
-//   }
-//   return normalizeDocument;
-// }
+export function getResponseTypeV3(responses: OpenAPIV3.ResponsesObject): {
+  responseType: string
+  errorResponseType?: string
+  isRef: boolean
+} {
+  // It does not allow the schema defined directly, but only the primitive type is allowed.
+  let responseType: string | null = null
+  let errorResponseType: string | null = null
+  let isRef = false
+
+  const errorStatusCode = Object.keys(responses).find(statusCode => !statusCode.match(/20[0-4]$/))
+  const errorRefObject = responses[errorStatusCode]
+  if (errorRefObject && '$ref' in errorRefObject) {
+    const ero = errorRefObject as OpenAPIV3.ReferenceObject
+    errorResponseType = refClassName(ero.$ref)
+  }
+  // 提取Schema
+  const successStatusCode = Object.keys(responses).find(statusCode => statusCode.match(/20[0-4]$/))
+  if (!successStatusCode) {
+    return { responseType, errorResponseType, isRef }
+  }
+
+  let resSchema = responses[successStatusCode]
+  if ('$ref' in resSchema) {
+    const ro = resSchema as OpenAPIV3.ReferenceObject
+    return { responseType: refClassName(ro.$ref), isRef: true, errorResponseType }
+  }
+
+  if (resSchema.content) {
+    if ('application/json' in resSchema.content) {
+      const mto = resSchema.content['application/json'] as OpenAPIV3.MediaTypeObject
+      if ('$ref' in mto.schema) {
+        const refType = refClassName(mto.schema.$ref)
+        return { responseType: refType, isRef: true, errorResponseType }
+      } else {
+        const so = mto.schema as OpenAPIV3.SchemaObject
+        if ('items' in so) {
+          if ('$ref' in so.items) {
+            const refType = refClassName(so.items.$ref) + '[]'
+            return { responseType: refType, isRef: true, errorResponseType }
+          }
+        }
+      }
+    }
+  }
+  return { responseType: responseType, isRef, errorResponseType }
+}
+
+export function normalizeV3Document(document: OpenAPIV3.Document): IDocument {
+  let normalizeDocument: IDocument = {
+    schema: document.openapi,
+    version: document.openapi,
+    host: document.servers?.[0]?.url,
+    definitions: [],
+    services: [],
+  }
+
+  // 解析paths的信息。
+  const paths: IPath[] = []
+  Object.entries<OpenAPIV3.PathItemObject>(document.paths).forEach(([path, pathItem]) => {
+    Object.entries(pathItem).forEach(([method, methodItem]) => {
+      if (baseMethods.indexOf(method) >= 0 && (methodItem as OpenAPIV3.OperationObject) != null) {
+        const operationObject = methodItem as OpenAPIV3.OperationObject
+        // operationId即为控制器中Action的方法名
+        let pathData: IPath = {
+          path: path,
+          operationId: camelcase(operationObject.operationId),
+          method: method,
+          tag: operationObject.tags[0],
+          responseType: getResponseTypeV3(operationObject.responses).responseType,
+          pathParams: [],
+          queryParams: [],
+          queryRefs: [],
+          bodyParams: [],
+        }
+        operationObject.parameters?.forEach(p => {
+          if ('in' in p) {
+            const param = normalizeV3Parameter(p as OpenAPIV3.ParameterObject)
+            if (param.in === 'query') {
+              if (param.isRef) {
+                pathData.queryRefs.push(param.modelType)
+              } else {
+                pathData.queryParams.push(param)
+              }
+            } else if (param.in === 'body') {
+              pathData.bodyParams.push(param)
+            } else if (param.in === 'path') {
+              pathData.pathParams.push(param)
+            }
+          }
+        })
+        if (operationObject.requestBody) {
+          // 以下封装 bodyParams
+          if ('$ref' in operationObject.requestBody) {
+            pathData.bodyParams.push({
+              name: 'input',
+              in: 'body',
+              modelType: refClassName(operationObject.requestBody.$ref),
+            })
+          } else {
+            const resSchema = operationObject.requestBody
+            if (resSchema.content) {
+              if ('application/json' in resSchema.content) {
+                const mto = resSchema.content['application/json'] as OpenAPIV3.MediaTypeObject
+                if ('$ref' in mto.schema) {
+                  const refType = refClassName(mto.schema.$ref)
+                  pathData.bodyParams.push({
+                    name: 'input',
+                    in: 'body',
+                    modelType: refType,
+                    isRef: true,
+                  })
+                } else {
+                  const so = mto.schema as OpenAPIV3.SchemaObject
+                  if ('items' in so) {
+                    if ('$ref' in so.items) {
+                      const refType = refClassName(so.items.$ref) + '[]'
+                      pathData.bodyParams.push({
+                        name: 'input',
+                        in: 'body',
+                        modelType: refType,
+                        isRef: true,
+                      })
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        paths.push(pathData)
+      }
+    })
+  })
+  normalizeDocument.services = groupPathsToServices(paths)
+
+  Object.entries<OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject>(document.components.schemas).forEach(
+    ([modelType, modelInfo]) => {
+      let definition: IDefinition = {
+        name: modelType, // SampleKind
+        // type: modelInfo.type as string, // integer|string
+        type: '',
+        properties: [],
+        values: [], // 1,2,3
+      }
+      if ('type' in modelInfo) {
+        const so = modelInfo as OpenAPIV3.SchemaObject
+        definition.type = so.type // 可能为 array，或者 object
+        if (so.properties) {
+          Object.entries<OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject>(so.properties).forEach(
+            ([propertyKey, propertyInfo]) => {
+              definition.properties.push(normalizeV3Property(propertyKey, propertyInfo, so.required || []))
+            }
+          )
+        } else if (so.enum) {
+          // 枚举类型
+          definition.values = so.enum
+        }
+      } else {
+        // const ro = modelInfo as OpenAPIV3.ReferenceObject
+        definition.type = 'object'
+        definition.properties.push({
+          name: modelType,
+          modelType: 'object',
+          nullable: false,
+        })
+      }
+      normalizeDocument.definitions.push(definition)
+    }
+  )
+
+  return normalizeDocument
+}
+
+function normalizeV3Property(
+  name: string,
+  item: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject,
+  required: string[]
+) {
+  const property: IProperty = {
+    name: name,
+    modelType: 'object',
+    nullable: required.indexOf(name) < 0,
+    // description: item.description,
+  }
+  if ('type' in item) {
+    const so = item as OpenAPIV3.SchemaObject
+    if ('items' in so) {
+      const aso = so as OpenAPIV3.ArraySchemaObject
+      if ('type' in aso.items) {
+        property.modelType = toBaseType((aso.items as OpenAPIV3.NonArraySchemaObject).type) + '[]'
+      } else if ('$ref' in aso.items) {
+        property.modelType = refClassName((aso.items as OpenAPIV3.ReferenceObject).$ref) + '[]'
+      }
+    } else {
+      // NonArraySchemaObject
+      const nso = so as OpenAPIV3.NonArraySchemaObject
+      property.modelType = toBaseType(nso.type)
+    }
+  } else {
+    const ro = item as OpenAPIV3.ReferenceObject
+    property.modelType = refClassName(ro.$ref)
+  }
+  return property
+}

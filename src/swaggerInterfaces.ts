@@ -22,11 +22,13 @@ export interface IPath {
   responseType: string
   pathParams?: IParameter[]
   queryParams?: IParameter[]
+  queryRefs?: string[] // 多个查询参数合并成一个定义type的参数，schema含有ref的parameter
   bodyParams?: IParameter[]
 }
 
 export interface IParameter {
   modelType?: string // 如果in是body， 含有schema，则可以指定一个model类型。
+  isRef?: boolean // 对于query， 含有schema，则可以指定一个model类型。
   name: string
   // schema?: string | undefined,
   // type: string,

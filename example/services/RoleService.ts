@@ -23,11 +23,11 @@ export default class RoleService {
     })
   }
 
-  static async create(body: IdentityRoleCreateDto) {
+  static async create(input: IdentityRoleCreateDto) {
     const url = '/api/identity/roles'
     return request<IdentityRoleDto>(url, {
       method: 'post',
-      data: body
+      data: input
     })
   }
 
@@ -38,11 +38,11 @@ export default class RoleService {
     })
   }
 
-  static async update(id: string, body: IdentityRoleUpdateDto) {
+  static async update(id: string, input: IdentityRoleUpdateDto) {
     const url = `/api/identity/roles/${id}`
     return request<IdentityRoleDto>(url, {
       method: 'put',
-      data: body
+      data: input
     })
   }
 

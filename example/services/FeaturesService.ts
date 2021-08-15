@@ -10,12 +10,12 @@ export default class FeaturesService {
     })
   }
 
-  static async update(query: { providerName?: string; providerKey?: string }, body: UpdateFeaturesDto) {
+  static async update(query: { providerName?: string; providerKey?: string }, input: UpdateFeaturesDto) {
     const url = '/api/feature-management/features'
     return request(url, {
       method: 'put',
       params: query,
-      data: body
+      data: input
     })
   }
 }

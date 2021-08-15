@@ -16,11 +16,11 @@ export default class UserService {
     })
   }
 
-  static async update(id: string, body: IdentityUserUpdateDto) {
+  static async update(id: string, input: IdentityUserUpdateDto) {
     const url = `/api/identity/users/${id}`
     return request<IdentityUserDto>(url, {
       method: 'put',
-      data: body
+      data: input
     })
   }
 
@@ -39,11 +39,11 @@ export default class UserService {
     })
   }
 
-  static async create(body: IdentityUserCreateDto) {
+  static async create(input: IdentityUserCreateDto) {
     const url = '/api/identity/users'
     return request<IdentityUserDto>(url, {
       method: 'post',
-      data: body
+      data: input
     })
   }
 
@@ -54,11 +54,11 @@ export default class UserService {
     })
   }
 
-  static async updateRoles(id: string, body: IdentityUserUpdateRolesDto) {
+  static async updateRoles(id: string, input: IdentityUserUpdateRolesDto) {
     const url = `/api/identity/users/${id}/roles`
     return request(url, {
       method: 'put',
-      data: body
+      data: input
     })
   }
 

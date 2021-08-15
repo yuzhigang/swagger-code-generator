@@ -1,5 +1,5 @@
 import request from '@/utils/request'
-import { TenantDto, TenantUpdateDto, TenantDtoPagedResultDto, TenantCreateDto, string } from './definitions'
+import { TenantDto, TenantUpdateDto, TenantDtoPagedResultDto, TenantCreateDto } from './definitions'
 
 export default class TenantService {
   static async get(id: string) {
@@ -9,11 +9,11 @@ export default class TenantService {
     })
   }
 
-  static async update(id: string, body: TenantUpdateDto) {
+  static async update(id: string, input: TenantUpdateDto) {
     const url = `/api/multi-tenancy/tenants/${id}`
     return request<TenantDto>(url, {
       method: 'put',
-      data: body
+      data: input
     })
   }
 
@@ -32,17 +32,17 @@ export default class TenantService {
     })
   }
 
-  static async create(body: TenantCreateDto) {
+  static async create(input: TenantCreateDto) {
     const url = '/api/multi-tenancy/tenants'
     return request<TenantDto>(url, {
       method: 'post',
-      data: body
+      data: input
     })
   }
 
   static async getDefaultConnectionString(id: string) {
     const url = `/api/multi-tenancy/tenants/${id}/default-connection-string`
-    return request<string>(url, {
+    return request(url, {
       method: 'get'
     })
   }
