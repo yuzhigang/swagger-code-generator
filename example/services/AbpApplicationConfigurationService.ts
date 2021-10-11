@@ -1,5 +1,5 @@
 import request from '@/utils/request'
-import { ApplicationConfigurationDto } from './definitions'
+import type { ApplicationConfigurationDto } from './definitions'
 
 export default class AbpApplicationConfigurationService {
   static async get() {

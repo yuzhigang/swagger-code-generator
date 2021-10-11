@@ -1,5 +1,5 @@
 import request from '@/utils/request'
-import { AbpLoginResult, UserLoginInfo } from './definitions'
+import type { AbpLoginResult, UserLoginInfo } from './definitions'
 
 export default class LoginService {
   static async login(input: UserLoginInfo) {

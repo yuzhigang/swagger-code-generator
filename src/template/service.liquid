@@ -1,9 +1,20 @@
-import request from '@/utils/request';
-import {
+import request from '@/utils/request'
+import type {
   {% for t in importTypes %}
   {{t}},
   {% endfor %}
-} from './definitions';
+} from './definitions'
+
+{% comment %} 定义query的类型 {% endcomment %}
+{%- for p in paths %}
+ {%- if p.queryParams.length > 0 -%}
+    export interface {{p.operationId | ucFirst }}QueryDto {
+        {%- for queryParam in p.queryParams -%}
+          {{queryParam.name}}{% unless queryParam.required %}?{% endunless %}:{{queryParam.modelType}}
+        {% endfor %}
+      }
+  {%- endif -%}
+{% endfor -%}
 
 export default class {{name}}Service {
   {% for p in paths %}
@@ -13,15 +24,7 @@ export default class {{name}}Service {
        {%- endfor -%}
 
       {%- if p.queryParams.length > 0 -%}
-      query:
-      {
-        {%- for queryParam in p.queryParams -%}
-          {{queryParam.name }}
-          {%- unless queryParam.required -%} ?
-          {%- endunless -%}
-          :{{queryParam.modelType}},
-         {%- endfor -%}
-      },
+      query: {{p.operationId | ucFirst }}QueryDto,
       {%- endif -%}
       {%- if p.queryRefs.length > 0 -%}
         query: {{ p.queryRefs | join: " & " }},

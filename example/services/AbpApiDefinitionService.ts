@@ -1,8 +1,11 @@
 import request from '@/utils/request'
-import { ApplicationApiDescriptionModel } from './definitions'
+import type { ApplicationApiDescriptionModel } from './definitions'
 
+export interface GetQueryDto {
+  includeTypes?: boolean
+}
 export default class AbpApiDefinitionService {
-  static async get(query: { includeTypes?: boolean }) {
+  static async get(query: GetQueryDto) {
     const url = '/api/abp/api-definition'
     return request<ApplicationApiDescriptionModel>(url, {
       method: 'get',

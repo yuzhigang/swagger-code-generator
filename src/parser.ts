@@ -36,7 +36,7 @@ function normalizeV2Property(name: string, item: OpenAPIV2.SchemaObject, require
     if (item.items.$ref) {
       property.modelType = refClassName(item.items.$ref) + '[]'
     } else {
-      property.modelType = toBaseType(item.items.type) + '[]'
+      property.modelType = toBaseType(item.items.type, item.items.format) + '[]'
     }
   } else if (item.type === 'object') {
     property.modelType = '{}'
@@ -80,7 +80,7 @@ function normalizeV2Parameter(item: OpenAPIV2.Parameter) {
       if (item.schema.items.$ref) {
         param.modelType = refClassName(item.schema.items.$ref)
       } else {
-        param.modelType = toBaseType(item.schema.items.type)
+        param.modelType = toBaseType(item.schema.items.type, item.schema.items.format)
       }
       if (item.schema.type && item.schema.type === 'array') {
         param.modelType += '[]'
@@ -89,12 +89,14 @@ function normalizeV2Parameter(item: OpenAPIV2.Parameter) {
       param.modelType = refClassName(item.schema.$ref)
       // console.log('param.modelType', refClassName(item.schema.$ref))
     } else if (item.schema.type) {
-      param.modelType = toBaseType(item.schema.type)
+      param.modelType = toBaseType(item.schema.type, item.schema.format)
     } else {
       throw new Error('Could not find property type on schema')
     }
   } else if (item.items) {
-    param.modelType = item.items.$ref ? refClassName(item.items.$ref) + '[]' : toBaseType(item.items.type) + '[]'
+    param.modelType = item.items.$ref
+      ? refClassName(item.items.$ref) + '[]'
+      : toBaseType(item.items.type, item.items.format) + '[]'
   } else if (item.enum) {
     if (item.type === 'string') {
       param.modelType = item.enum!.map((t: any) => `'${t}'`).join(' | ')
@@ -104,7 +106,7 @@ function normalizeV2Parameter(item: OpenAPIV2.Parameter) {
   }
   // 基本类型
   else {
-    param.modelType = toBaseType(item.type)
+    param.modelType = toBaseType(item.type, item.format)
   }
   return param
 }
@@ -128,7 +130,7 @@ function normalizeV3Parameter(item: OpenAPIV3.ParameterObject) {
         } else {
           // 是基本类型
           // const nso = so as OpenAPIV3.SchemaObject
-          param.modelType = toBaseType(so.type) + '[]'
+          param.modelType = toBaseType(so.type, so.format) + '[]'
         }
       } else {
         // 不是 array， 基本类型+ object类型
@@ -137,7 +139,7 @@ function normalizeV3Parameter(item: OpenAPIV3.ParameterObject) {
           // 似乎不存在这种类型
         } else {
           // 基本类型
-          param.modelType = toBaseType(nso.type)
+          param.modelType = toBaseType(nso.type, nso.format, nso.enum)
           // if (nso.enum) {
           //   if(nso.type === 'string'){
 
@@ -551,14 +553,15 @@ function normalizeV3Property(
     if ('items' in so) {
       const aso = so as OpenAPIV3.ArraySchemaObject
       if ('type' in aso.items) {
-        property.modelType = toBaseType((aso.items as OpenAPIV3.NonArraySchemaObject).type) + '[]'
+        const asoi = aso.items as OpenAPIV3.NonArraySchemaObject
+        property.modelType = toBaseType(asoi.type, asoi.format) + '[]'
       } else if ('$ref' in aso.items) {
         property.modelType = refClassName((aso.items as OpenAPIV3.ReferenceObject).$ref) + '[]'
       }
     } else {
       // NonArraySchemaObject
       const nso = so as OpenAPIV3.NonArraySchemaObject
-      property.modelType = toBaseType(nso.type)
+      property.modelType = toBaseType(nso.type, nso.format, nso.enum)
     }
   } else {
     const ro = item as OpenAPIV3.ReferenceObject

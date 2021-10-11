@@ -1,5 +1,5 @@
 import request from '@/utils/request'
-import { ProfileDto, UpdateProfileDto, ChangePasswordInput } from './definitions'
+import type { ProfileDto, UpdateProfileDto, ChangePasswordInput } from './definitions'
 
 export default class ProfileService {
   static async get() {

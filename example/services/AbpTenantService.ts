@@ -1,5 +1,5 @@
 import request from '@/utils/request'
-import { FindTenantResultDto } from './definitions'
+import type { FindTenantResultDto } from './definitions'
 
 export default class AbpTenantService {
   static async findTenantByName(name: string) {

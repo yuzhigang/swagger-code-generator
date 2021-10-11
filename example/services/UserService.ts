@@ -1,5 +1,5 @@
 import request from '@/utils/request'
-import {
+import type {
   IdentityUserDto,
   IdentityUserUpdateDto,
   IdentityUserDtoPagedResultDto,
@@ -8,6 +8,12 @@ import {
   IdentityUserUpdateRolesDto
 } from './definitions'
 
+export interface GetListQueryDto {
+  filter?: string
+  sorting?: string
+  skipCount?: number
+  maxResultCount?: number
+}
 export default class UserService {
   static async get(id: string) {
     const url = `/api/identity/users/${id}`
@@ -31,7 +37,7 @@ export default class UserService {
     })
   }
 
-  static async getList(query: { filter?: string; sorting?: string; skipCount?: number; maxResultCount?: number }) {
+  static async getList(query: GetListQueryDto) {
     const url = '/api/identity/users'
     return request<IdentityUserDtoPagedResultDto>(url, {
       method: 'get',

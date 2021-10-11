@@ -81,7 +81,7 @@ export function isBaseType(s: string) {
   return ['boolean', 'number', 'string', 'string', 'Date', 'any'].includes(s)
 }
 
-export function toBaseType(s: string, format?: string) {
+export function toBaseType(s: string, format?: string, enums?: any[]) {
   if (s === undefined || s === null || s.length === 0) {
     return 'any | null'
   }
@@ -100,12 +100,24 @@ export function toBaseType(s: string, format?: string) {
     case 'int':
     case 'integer':
     case 'number':
-      result = 'number'
+      if (enums) {
+        result = enums.join('|')
+      } else {
+        result = 'number'
+      }
+      break
+
+    case 'String':
+    case 'string':
+      if (enums) {
+        result = enums.map(t => `'${t}'`).join('|')
+      } else {
+        result = 'string'
+      }
       break
     case 'Guid':
     case 'guid':
-    case 'String':
-    case 'string':
+
     case 'uuid':
       switch (format) {
         case 'date':
