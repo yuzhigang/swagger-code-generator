@@ -1,4 +1,4 @@
-import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
+import { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
 import { IDocument, IPath, IParameter, IDefinition, IProperty, IService } from './swaggerInterfaces'
 import { refClassName, toBaseType, RemoveSpecialCharacters, isOpenApi3 } from './utils'
 import camelcase from 'camelcase'
@@ -36,7 +36,7 @@ function normalizeV2Property(name: string, item: OpenAPIV2.SchemaObject, require
     if (item.items.$ref) {
       property.modelType = refClassName(item.items.$ref) + '[]'
     } else {
-      property.modelType = toBaseType(item.items.type, item.items.format) + '[]'
+      if ('type' in item.items) property.modelType = toBaseType(item.items.type, item.items.format) + '[]'
     }
   } else if (item.type === 'object') {
     property.modelType = '{}'
@@ -129,8 +129,8 @@ function normalizeV3Parameter(item: OpenAPIV3.ParameterObject) {
           param.modelType = refClassName((aso.items as OpenAPIV3.ReferenceObject).$ref) + '[]'
         } else {
           // 是基本类型
-          // const nso = so as OpenAPIV3.SchemaObject
-          param.modelType = toBaseType(so.type, so.format) + '[]'
+          const nso = aso.items as OpenAPIV3.SchemaObject
+          param.modelType = toBaseType(nso.type, nso.format) + '[]'
         }
       } else {
         // 不是 array， 基本类型+ object类型
@@ -184,9 +184,11 @@ export function groupPathsToServices(paths: IPath[]): IService[] {
     })
 
     path.queryRefs.forEach(p => {
-      const type = p.replace('[]', '')
-      if (services[path.tag].importTypes.indexOf(type) < 0) {
-        services[path.tag].importTypes.push(type)
+      if (p.modelType) {
+        const type = p.modelType.replace('[]', '')
+        if (services[path.tag].importTypes.indexOf(type) < 0) {
+          services[path.tag].importTypes.push(type)
+        }
       }
     })
   })
@@ -338,27 +340,36 @@ export function getResponseTypeV2(
     const errorStatusCode = Object.keys(responses).find(statusCode => !statusCode.match(/20[0-4]$/))
     return { responseType: responseType, isRef }
   }
-  let resSchema = responses[successStatusCode].schema
+  let resSchema = (responses?.[successStatusCode] as OpenAPIV2.ResponseObject).schema
+
+  // if (successStatusCode in responses && responses[successStatusCode] && 'schema' in responses[successStatusCode]) {
+  //   let resSchema = responses[successStatusCode].schema
+  // }
+
   if (!resSchema) {
     return { responseType: responseType, isRef }
   }
 
   // 如果是数组
-  if (resSchema.items) {
+  if ('items' in resSchema) {
     if (resSchema.items.$ref) {
       const refType = refClassName(resSchema.items.$ref)
       isRef = true
       responseType = refType + '[]'
     } else {
-      const refType = toBaseType(resSchema.items.type, resSchema.items.format)
-      responseType = refType + '[]'
+      if ('type' in resSchema.items) {
+        const refType = toBaseType(resSchema.items.type, resSchema.items.format)
+        responseType = refType + '[]'
+      }
     }
   } else if (resSchema.$ref) {
     // 如果是引用对象
     responseType = refClassName(resSchema.$ref) || 'any'
     isRef = true
   } else {
-    responseType = toBaseType(resSchema.type, resSchema.format)
+    if ('type' in resSchema) {
+      responseType = toBaseType(resSchema.type as string, resSchema.format)
+    }
   }
   return { responseType: responseType, isRef }
 }
@@ -443,7 +454,7 @@ export function normalizeV3Document(document: OpenAPIV3.Document): IDocument {
             const param = normalizeV3Parameter(p as OpenAPIV3.ParameterObject)
             if (param.in === 'query') {
               if (param.isRef) {
-                pathData.queryRefs.push(param.modelType)
+                pathData.queryRefs.push(param)
               } else {
                 pathData.queryParams.push(param)
               }
@@ -567,5 +578,10 @@ function normalizeV3Property(
     const ro = item as OpenAPIV3.ReferenceObject
     property.modelType = refClassName(ro.$ref)
   }
+
+  // TODO: 加还是不加？ properties: 下的nullable
+  // if ('nullable' in item) {
+  //   property.nullable = item.nullable
+  // }
   return property
 }

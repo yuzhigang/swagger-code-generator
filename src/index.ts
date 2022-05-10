@@ -13,7 +13,7 @@ import { ISwaggerOptions, IInclude, IDefinitionClasses, IDefinitionEnums } from 
 import { isOpenApi3, findDeepRefs, setDefinedGenericTypes, getDefinedGenericTypes, trimString } from './utils'
 import { IDocument } from './swaggerInterfaces'
 const engine = new Liquid()
-engine.registerFilter('ucFirst', str => str.charAt(0).toUpperCase() + str.slice(1))
+engine.registerFilter('ucFirst', (str: string) => str.charAt(0).toUpperCase() + str.slice(1))
 
 const args = yargs.options({
   url: { type: 'string', demandOption: false, alias: 'u' },

@@ -1,5 +1,5 @@
 import request from '@/utils/request'
-import { EmailSettingsDto, UpdateEmailSettingsDto } from './definitions'
+import type { EmailSettingsDto, UpdateEmailSettingsDto } from './definitions'
 
 export default class EmailSettingsService {
   static async get() {

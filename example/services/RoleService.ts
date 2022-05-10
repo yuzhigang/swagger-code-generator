@@ -7,7 +7,7 @@ import type {
   IdentityRoleUpdateDto
 } from './definitions'
 
-export interface GetListQueryDto {
+export interface RoleGetListQuery {
   filter?: string
   sorting?: string
   skipCount?: number
@@ -21,7 +21,7 @@ export default class RoleService {
     })
   }
 
-  static async getList(query: GetListQueryDto) {
+  static async getList(query: RoleGetListQuery) {
     const url = '/api/identity/roles'
     return request<IdentityRoleDtoPagedResultDto>(url, {
       method: 'get',

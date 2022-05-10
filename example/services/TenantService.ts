@@ -1,13 +1,13 @@
 import request from '@/utils/request'
 import type { TenantDto, TenantUpdateDto, TenantDtoPagedResultDto, TenantCreateDto } from './definitions'
 
-export interface GetListQueryDto {
+export interface TenantGetListQuery {
   filter?: string
   sorting?: string
   skipCount?: number
   maxResultCount?: number
 }
-export interface UpdateDefaultConnectionStringQueryDto {
+export interface TenantUpdateDefaultConnectionStringQuery {
   defaultConnectionString?: string
 }
 export default class TenantService {
@@ -33,7 +33,7 @@ export default class TenantService {
     })
   }
 
-  static async getList(query: GetListQueryDto) {
+  static async getList(query: TenantGetListQuery) {
     const url = '/api/multi-tenancy/tenants'
     return request<TenantDtoPagedResultDto>(url, {
       method: 'get',
@@ -56,7 +56,7 @@ export default class TenantService {
     })
   }
 
-  static async updateDefaultConnectionString(id: string, query: UpdateDefaultConnectionStringQueryDto) {
+  static async updateDefaultConnectionString(id: string, query: TenantUpdateDefaultConnectionStringQuery) {
     const url = `/api/multi-tenancy/tenants/${id}/default-connection-string`
     return request(url, {
       method: 'put',

@@ -1,13 +1,13 @@
 import request from '@/utils/request'
 import type { UserData, UserDataListResultDto } from './definitions'
 
-export interface SearchQueryDto {
+export interface UserLookupSearchQuery {
   filter?: string
   sorting?: string
   skipCount?: number
   maxResultCount?: number
 }
-export interface GetCountQueryDto {
+export interface UserLookupGetCountQuery {
   filter?: string
 }
 export default class UserLookupService {
@@ -25,7 +25,7 @@ export default class UserLookupService {
     })
   }
 
-  static async search(query: SearchQueryDto) {
+  static async search(query: UserLookupSearchQuery) {
     const url = '/api/identity/users/lookup/search'
     return request<UserDataListResultDto>(url, {
       method: 'get',
@@ -33,7 +33,7 @@ export default class UserLookupService {
     })
   }
 
-  static async getCount(query: GetCountQueryDto) {
+  static async getCount(query: UserLookupGetCountQuery) {
     const url = '/api/identity/users/lookup/count'
     return request(url, {
       method: 'get',

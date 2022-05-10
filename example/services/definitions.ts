@@ -1,5 +1,5 @@
 export interface AbpLoginResult {
-  result: 'Success' | 'InvalidUserNameOrPassword' | 'NotAllowed' | 'LockedOut' | 'RequiresTwoFactor'
+  result?: LoginResultType
   description: string
 }
 
@@ -13,33 +13,16 @@ export interface ActionApiDescriptionModel {
   parameters: ParameterApiDescriptionModel[]
   returnValue?: ReturnValueApiDescriptionModel
   allowAnonymous?: boolean
+  implementFrom: string
 }
 
 export interface AddDriverTagDto {
-  driverId: string
   tagId: string
   address: string
   remark: string
 }
 
-export interface AdditionDto {
-  extraProperties?: {}
-  id: string
-  creationTime: string
-  creatorId?: string
-  lastModificationTime?: string
-  lastModifierId?: string
-  heatNo: string
-  materialId: string
-  material?: AuxMaterialDto
-  weight: number
-  eventTime: string
-}
-
-export interface AdditionDtoPagedResultDto {
-  items: AdditionDto[]
-  totalCount: number
-}
+export type AggregateType = 'Hour' | 'Shift' | 'Day' | 'Week' | 'Month' | 'Season' | 'Year'
 
 export interface ApplicationApiDescriptionModel {
   modules?: {}
@@ -81,74 +64,31 @@ export interface ApplicationSettingConfigurationDto {
   values?: {}
 }
 
-export interface AuditLogActionDto {
-  id: string
-  tenantId?: string
-  auditLogId: string
-  serviceName: string
-  methodName: string
-  parameters: string
-  executionTime: string
-  executionDuration: number
+export interface AppTreeDto {
+  application: string
+  count: number
+  nodes: AppTreeNodeDto[]
 }
 
-export interface AuditLogDto {
-  id: string
-  httpStatusCode?: number
-  comments: string
-  exceptions: string
-  url: string
-  httpMethod: string
-  browserInfo: string
-  correlationId: string
-  clientId: string
-  clientName: string
-  clientIpAddress: string
-  executionDuration: number
-  executionTime: string
-  impersonatorTenantId?: string
-  impersonatorUserId?: string
-  tenantName: string
-  tenantId?: string
-  userName: string
-  userId?: string
-  applicationName: string
-  actions: AuditLogActionDto[]
-}
-
-export interface AuditLogDtoPagedResultDto {
-  items: AuditLogDto[]
-  totalCount: number
-}
-
-export interface AuthenticateModel {
-  userNameOrEmailAddress: string
-  password: string
-}
-
-export interface AuthenticateResultModel {
-  accessToken: string
-  refreshToken: string
-  identityToken: string
-  expiresIn: number
-}
-
-export interface AuxMaterialDto {
+export interface AppTreeNodeDto {
   extraProperties?: {}
   id: string
-  creationTime: string
-  creatorId?: string
-  lastModificationTime?: string
-  lastModifierId?: string
-  name: string
+  displayName: string
   code: string
-  remark: string
-  category: string
-  subcategory: string
+  level: number
+  parentId?: string
+  isRoot: boolean
+  isLeaf: boolean
+  application: string
+  rank: number
+  icon: string
+  entityId: string
+  entityType: string
+  children: AppTreeNodeDto[]
 }
 
-export interface AuxMaterialDtoPagedResultDto {
-  items: AuxMaterialDto[]
+export interface AppTreeNodeDtoPagedResultDto {
+  items: AppTreeNodeDto[]
   totalCount: number
 }
 
@@ -180,7 +120,7 @@ export interface BackgroundWorkerLogDto {
   id: string
   instanceId: string
   runSeconds: number
-  category: 'Info' | 'Warn' | 'Error'
+  category?: LogLevel
   message: string
   stackTrace: string
   creationTime: string
@@ -196,44 +136,17 @@ export interface ChangePasswordInput {
   newPassword: string
 }
 
-export interface ChannelDto {
-  extraProperties?: {}
-  id: string
-  creationTime: string
-  creatorId?: string
-  lastModificationTime?: string
-  lastModifierId?: string
-  name: string
-  remark: string
-  rank: number
-  host: string
-  port: string
-  userName: string
-  password: string
-  channelType: 'Network' | 'SerialPort' | 'Database'
-  isActive: boolean
-  tenantId?: string
-}
-
-export interface ChannelDtoPagedResultDto {
-  items: ChannelDto[]
-  totalCount: number
-}
+export type ChannelType = 'Network' | 'SerialPort' | 'Database'
 
 export interface ClockDto {
   kind: string
 }
 
-export interface ConfigLadleInput {
-  heatNo: string
-  ladleNo: string
-  ladleType: string
-  ladleRemark: string
-  ladleAge: number
-}
-
 export interface ControllerApiDescriptionModel {
   controllerName: string
+  controllerGroupName: string
+  isRemoteService: boolean
+  apiVersion: string
   type: string
   interfaces: ControllerInterfaceApiDescriptionModel[]
   actions?: {}
@@ -243,42 +156,14 @@ export interface ControllerInterfaceApiDescriptionModel {
   type: string
 }
 
-export interface CraneDto {
-  extraProperties?: {}
-  id: string
-  creationTime: string
-  creatorId?: string
-  lastModificationTime?: string
-  lastModifierId?: string
-  code: string
-  name: string
-  remark: string
-  isActive: boolean
+export interface CreateAppTreeNodeDto {
+  application: string
+  parentId?: string
+  entityId: string
+  entityType: string
+  displayName: string
+  icon: string
   rank: number
-  kind: 'Crane' | 'Trolley'
-  astrideNo: string
-  astrideName: string
-  xStart: number
-  yStart: number
-  xEnd: number
-  yEnd: number
-}
-
-export interface CraneDtoPagedResultDto {
-  items: CraneDto[]
-  totalCount: number
-}
-
-export interface CreateChannelDto {
-  name: string
-  remark: string
-  rank: number
-  host: string
-  port: string
-  userName: string
-  password: string
-  channelType: 'Network' | 'SerialPort' | 'Database'
-  isActive: boolean
 }
 
 export interface CreateDeviceDto {
@@ -286,16 +171,11 @@ export interface CreateDeviceDto {
   name: string
   remark: string
   rank: number
-  isActive: boolean
   locationId?: string
   parentId?: string
-  deviceKey: string
-  deviceSecret: string
-  accessToken: string
-  ipAddress: string
-  apiUrl: string
-  serverApiUrl: string
 }
+
+export interface CreateDriverDefinitionDto {}
 
 export interface CreateDriverDto {
   name: string
@@ -311,21 +191,68 @@ export interface CreateDriverDto {
   settings?: {}
 }
 
-export interface CreateLadleDto {
+export interface CreateMaterialTypeDto {
   name: string
-  ladleType: string
-  age: number
   code: string
-  lifeCount: number
-  manufacturer: string
+  category: string
   remark: string
+  rank: number
 }
 
-export interface CreateLocationDto {
+export interface CreateNodeDto {
+  nodeTypeId?: string
   name: string
   remark: string
   rank: number
-  parentId?: string
+}
+
+export interface CreateNodeMaterialTypeDto {
+  materialTypeId: string
+  nodeId: string
+  nodeName: string
+  name: string
+  flowType: string
+  remark: string
+  rank: number
+  type: string
+  value: number
+  maxValue?: number
+  minValue?: number
+  equipmentNumber: number
+  singleValue?: number
+}
+
+export interface CreateNodePropertyDto {
+  nodeId: string
+  propertyCode: string
+  tagId: string
+}
+
+export interface CreateNodeTypeDto {
+  name: string
+  category: string
+  code: string
+  remark: string
+  rank: number
+}
+
+export interface CreatePropertyDefinitionDto {
+  name: string
+  remark: string
+  category: string
+  unit: string
+  valueType: string
+  source: string
+}
+
+export interface CreatePropertyDto {
+  entityType: string
+  entityId: string
+  propertyDefinitionId: string
+  isMain: boolean
+  value: string
+  maxValue?: number
+  minValue?: number
 }
 
 export interface CreateTagDefinitionDto {
@@ -334,22 +261,24 @@ export interface CreateTagDefinitionDto {
   remark: string
   unit: string
   scale?: number
-  valueType: 'String' | 'Boolean' | 'Int' | 'Float' | 'Json'
+  valueType?: TagValueType
   rank: number
   interval?: number
-  readMode: 'Read' | 'Write' | 'ReadWrite'
+  readMode?: ReadMode
+  parentId?: string
 }
 
 export interface CreateTagDto {
   id: string
   name: string
-  address: string
   interval?: number
-  deviceId?: string
+  deviceId: string
+  readMode?: ReadMode
   isActive: boolean
   remark: string
   rank: number
-  tagType: 'IO' | 'User' | 'Computing' | 'System'
+  expression: string
+  tagType?: TagType
   tagDefinitionId?: string
 }
 
@@ -377,6 +306,8 @@ export interface CurrentUserDto {
   tenantId?: string
   impersonatorUserId?: string
   impersonatorTenantId?: string
+  impersonatorUserName: string
+  impersonatorTenantName: string
   userName: string
   name: string
   surName: string
@@ -385,6 +316,12 @@ export interface CurrentUserDto {
   phoneNumber: string
   phoneNumberVerified: boolean
   roles: string[]
+}
+
+export interface DashboardStatistic {
+  driver?: StatisticItem
+  tag?: StatisticItem
+  device?: StatisticItem
 }
 
 export interface DateTimeFormatDto {
@@ -407,19 +344,16 @@ export interface DeviceDto {
   name: string
   remark: string
   rank: number
-  locationId: string
+  locationId?: string
   code: string
   isActive: boolean
   location?: LocationDto
+  status?: DeviceStatus
   parent?: DeviceDto
   parentId?: string
   isGateway: boolean
   deviceKey: string
-  deviceSecret: string
-  accessToken: string
   ipAddress: string
-  apiUrl: string
-  serverApiUrl: string
   tags: TagDto[]
 }
 
@@ -427,6 +361,8 @@ export interface DeviceDtoPagedResultDto {
   items: DeviceDto[]
   totalCount: number
 }
+
+export type DeviceStatus = 'Unknown' | 'Closed' | 'Normal' | 'Fault'
 
 export interface DriverDefinitionDto {
   extraProperties?: {}
@@ -443,10 +379,15 @@ export interface DriverDefinitionDto {
   className: string
   category: string
   subcategory: string
-  channelType: 'Network' | 'SerialPort' | 'Database'
+  channelType?: ChannelType
   type: string
-  usageType: 'Reader' | 'Writer' | 'Store' | 'Publisher'
-  workMode: 'Pull' | 'Listen'
+  usageType?: DriverUsageType
+  workMode?: DriverWorkMode
+}
+
+export interface DriverDefinitionDtoPagedResultDto {
+  items: DriverDefinitionDto[]
+  totalCount: number
 }
 
 export interface DriverDto {
@@ -464,18 +405,34 @@ export interface DriverDto {
   driverDefinition?: DriverDefinitionDto
   host: string
   port: string
-  userName: string
-  password: string
   interval?: number
   timeout?: number
   retryCount?: number
   tags: TagDto[]
-  runState: 'Stop' | 'Running' | 'Pause'
+  runState?: DriverRunState
 }
 
 export interface DriverDtoPagedResultDto {
   items: DriverDto[]
   totalCount: number
+}
+
+export type DriverRunState = 'Stop' | 'Running' | 'Pause'
+
+export type DriverUsageType = 'Reader' | 'Writer' | 'Store' | 'Publisher'
+
+export type DriverWorkMode = 'Pull' | 'Listen'
+
+export interface EmailSettingsDto {
+  smtpHost: string
+  smtpPort: number
+  smtpUserName: string
+  smtpPassword: string
+  smtpDomain: string
+  smtpEnableSsl: boolean
+  smtpUseDefaultCredentials: boolean
+  defaultFromAddress: string
+  defaultFromDisplayName: string
 }
 
 export interface EntityExtensionDto {
@@ -579,9 +536,22 @@ export interface FindTenantResultDto {
   isActive: boolean
 }
 
-export interface FinishJobPlanInput {
-  jobPlanId: string
-  endTime: string
+export interface FreshKeyDto {
+  deviceKey: string
+  deviceId: string
+}
+
+export interface GetAccFlowStatisticDto {
+  day?: GetAccFlowStatisticItemDto
+  shift?: GetAccFlowStatisticItemDto
+  week?: GetAccFlowStatisticItemDto
+  month?: GetAccFlowStatisticItemDto
+}
+
+export interface GetAccFlowStatisticItemDto {
+  current: number
+  prev: number
+  ratio: number
 }
 
 export interface GetFeatureListResultDto {
@@ -593,97 +563,10 @@ export interface GetPermissionListResultDto {
   groups: PermissionGroupDto[]
 }
 
-export interface HeatPlanChangeShiftFlagInput {
-  pono: string
-  shiftFlag: boolean
-}
-
-export interface HeatPlanChangeStatusInput {
-  ponos: string[]
-  state: 'PlanReady' | 'Start' | 'End'
-}
-
-export interface HeatPlanChangeTundishFlagInput {
-  pono: string
-  tundishFlag: boolean
-  tundishNo: string
-}
-
-export interface HeatPlanDto {
-  extraProperties?: {}
-  id: string
-  creationTime: string
-  creatorId?: string
-  lastModificationTime?: string
-  lastModifierId?: string
-  pono: string
-  heatNo: string
-  heatSeq: number
-  shiftNo: string
-  tundishNo: string
-  hotNo: string
-  jobPlans: JobPlanDto[]
-  productionPlan?: ProductionPlanDto
-  refinePathCode: string
-  refinePath: string
-  castLotNo: string
-  castLotDivNo: string
-  castLotSum: number
-  ladleNo: string
-  ladleAge: number
-  ladleType: string
-  ladleRemark: string
-  divFlag: boolean
-  shiftChanged: boolean
-  tundishChanged: boolean
-  tapTemperatue: number
-  tapWeight: number
-  scrapWeight: number
-  ironWeight: number
-  pourWeight: number
-  scrapRate: number
-  startTime?: string
-  endTime?: string
-  duration?: TimeSpan
-  state: 'PlanReady' | 'Start' | 'End'
-}
-
-export interface HeatPlanDtoPagedResultDto {
-  items: HeatPlanDto[]
-  totalCount: number
-}
-
-export interface HeatPlanExchangeProductionPlanInput {
-  oldPono: string
-  newPono: string
-}
-
-export interface HeatPlanLatestQueryDto {
-  start: string
-  includeJobPlans: boolean
-  includeProductionPlan: boolean
-}
-
-export interface HeatPlanSimpleDto {
-  id: string
-  pono: string
-  heatNo: string
-  heatSeq: number
-  jobPlans: JobPlanSimpleDto[]
-  castId: string
-  steelType: string
-  refinePath: string
-  ladleNo: string
-  ladleAge: number
-  ladleType: string
-  ladleRemark: string
-  divFlag: boolean
-  shiftChanged: boolean
-  tundishChanged: boolean
-}
-
-export interface HeatPlanSimpleDtoListResultDto {
-  items: HeatPlanSimpleDto[]
+export interface GetRealFlowsItemDto {
+  source: string
+  target: string
+  value: number
 }
 
 export interface IanaTimeZone {
@@ -731,6 +614,7 @@ export interface IdentityUserCreateDto {
   surname: string
   email: string
   phoneNumber: string
+  isActive: boolean
   lockoutEnabled: boolean
   roleNames: string[]
   password: string
@@ -754,6 +638,7 @@ export interface IdentityUserDto {
   emailConfirmed: boolean
   phoneNumber: string
   phoneNumberConfirmed: boolean
+  isActive: boolean
   lockoutEnabled: boolean
   lockoutEnd?: string
   concurrencyStamp: string
@@ -771,6 +656,7 @@ export interface IdentityUserUpdateDto {
   surname: string
   email: string
   phoneNumber: string
+  isActive: boolean
   lockoutEnabled: boolean
   roleNames: string[]
   password: string
@@ -779,47 +665,6 @@ export interface IdentityUserUpdateDto {
 
 export interface IdentityUserUpdateRolesDto {
   roleNames: string[]
-}
-
-export interface IronBagDto {
-  extraProperties?: {}
-  id: string
-  creationTime: string
-  creatorId?: string
-  lastModificationTime?: string
-  lastModifierId?: string
-  hotNo: string
-  bagNo: string
-  weight: number
-  arrivalTime: string
-  heatNo: string
-  usedTime?: string
-  mixed: boolean
-  confirmed: boolean
-  confirmTime?: string
-  merges: IronMergeDto[]
-}
-
-export interface IronBagDtoPagedResultDto {
-  items: IronBagDto[]
-  totalCount: number
-}
-
-export interface IronMergeDto {
-  extraProperties?: {}
-  id: string
-  creationTime: string
-  creatorId?: string
-  lastModificationTime?: string
-  lastModifierId?: string
-  hotNo: string
-  bagNo: string
-  heatNo: string
-  weight: number
-  usedWeight: number
-  isMain: boolean
-  parentHotNo: string
-  modifyTime?: string
 }
 
 export interface IStringValueType {
@@ -831,130 +676,6 @@ export interface IStringValueType {
 export interface IValueValidator {
   name: string
   properties?: {}
-}
-
-export interface JobPlanDto {
-  extraProperties?: {}
-  id: string
-  creationTime: string
-  creatorId?: string
-  lastModificationTime?: string
-  lastModifierId?: string
-  workSeq: number
-  heatNo: string
-  machineId: string
-  process: string
-  planStart: string
-  planEnd: string
-  duration?: TimeSpan
-  actStart?: string
-  actEnd?: string
-  simStart?: string
-  simEnd?: string
-  rank: number
-  status: 'NotStarted' | 'Processing' | 'Completed' | 'None'
-  productionPlan?: ProductionPlanDto
-  start: string
-  end: string
-  isStart: boolean
-  isEnd: boolean
-}
-
-export interface JobPlanDtoPagedResultDto {
-  items: JobPlanDto[]
-  totalCount: number
-}
-
-export interface JobPlanInput {
-  id: string
-  heatNo: string
-  machineId: string
-  planStart: string
-  planEnd: string
-  state: 'Added' | 'Modified' | 'Deleted'
-}
-
-export interface JobPlanSimpleDto {
-  id: string
-  heatNo: string
-  machineId: string
-  process: string
-  start: string
-  end: string
-  duration?: TimeSpan
-  status: 'NotStarted' | 'Processing' | 'Completed' | 'None'
-  workSeq: number
-  rank: number
-}
-
-export interface LadleDto {
-  extraProperties?: {}
-  id: string
-  creationTime: string
-  creatorId?: string
-  lastModificationTime?: string
-  lastModifierId?: string
-  name: string
-  code: string
-  age: number
-  ladleType: string
-  plugBrickCount: number
-  slagLineCount: number
-  downNozzleCount: number
-  upNozzleCount: number
-  slidingPlateCount: number
-  lifeCount: number
-  manufacturer: string
-  useTime: string
-  isActive: boolean
-  remark: string
-}
-
-export interface LadleDtoPagedResultDto {
-  items: LadleDto[]
-  totalCount: number
-}
-
-export interface LadleRecordDto {
-  extraProperties?: {}
-  id: string
-  creationTime: string
-  creatorId?: string
-  lastModificationTime?: string
-  lastModifierId?: string
-  ladleNo: string
-  ladleAge: number
-  ladleType: string
-  remark: string
-  heatNo: string
-  lastHeatNo: string
-  lastOfflineTime?: string
-  onlineTime?: string
-  offlineTime?: string
-  emptyMinutes: number
-  workMinutes: number
-}
-
-export interface LadleRecordDtoPagedResultDto {
-  items: LadleRecordDto[]
-  totalCount: number
-}
-
-export interface LadleStateDto {
-  id: string
-  ladleNo: string
-  ladleType: string
-  isActive: boolean
-  remark: string
-  heatNo: string
-  lastHeatNo: string
-  lastOfflineTime?: string
-  craneNo: string
-}
-
-export interface LadleStateDtoPagedResultDto {
-  items: LadleStateDto[]
-  totalCount: number
 }
 
 export interface LanguageInfo {
@@ -982,114 +703,24 @@ export interface LocationDto {
   parentId?: string
 }
 
-export interface LocationDtoPagedResultDto {
-  items: LocationDto[]
-  totalCount: number
-}
+export type LoginResultType = 'Success' | 'InvalidUserNameOrPassword' | 'NotAllowed' | 'LockedOut' | 'RequiresTwoFactor'
 
-export interface MachineCardDto {
+export type LogLevel = 'Info' | 'Warn' | 'Error'
+
+export interface MaterialTypeDto {
   extraProperties?: {}
   id: string
-  creationTime: string
-  creatorId?: string
-  lastModificationTime?: string
-  lastModifierId?: string
   name: string
-  machine: string
-  steelType: string
-  remark: string
-  isActive: boolean
-  version: string
-  beginDate: string
-  endDate: string
-}
-
-export interface MachineCardDtoPagedResultDto {
-  items: MachineCardDto[]
-  totalCount: number
-}
-
-export interface MachineDto {
-  extraProperties?: {}
-  id: string
-  creationTime: string
-  creatorId?: string
-  lastModificationTime?: string
-  lastModifierId?: string
-  name: string
-  shortName: string
-  station: string
-  process: string
-  executionTime: number
-  moveTime: number
-  intervalTime: number
+  code: string
   category: string
-  seqNo: number
-  rank: number
-  isMain: boolean
   remark: string
-  isActive: boolean
-}
-
-export interface MachineDtoPagedResultDto {
-  items: MachineDto[]
-  totalCount: number
-}
-
-export interface MaintenancePlanDto {
-  extraProperties?: {}
-  id: string
-  creationTime: string
-  creatorId?: string
-  lastModificationTime?: string
-  lastModifierId?: string
-  machine: string
-  eventCode: string
-  planStart: string
-  planEnd: string
-  actStart?: string
-  actEnd?: string
-  remark: string
-}
-
-export interface MaintenancePlanDtoPagedResultDto {
-  items: MaintenancePlanDto[]
-  totalCount: number
-}
-
-export interface MasterPlanConfirmDto {
-  masterPlanId: string
-  count: number
-  isContinuous: boolean
-}
-
-export interface MasterPlanConfirmInput {
-  items: MasterPlanConfirmDto[]
-}
-
-export interface MasterProductionPlanDto {
-  extraProperties?: {}
-  id: string
-  creationTime: string
-  creatorId?: string
-  lastModificationTime?: string
-  lastModifierId?: string
-  msc: string
-  castId: string
-  steelType: string
-  hotSendPlan: string
-  carryPlan: string
-  planDate: string
-  planCount: number
-  plans: ProductionPlanDto[]
   rank: number
-  isActive: boolean
-  weight: number
-  length: number
+  priority: number
+  demand: number
 }
 
-export interface MasterProductionPlanDtoPagedResultDto {
-  items: MasterProductionPlanDto[]
+export interface MaterialTypeDtoPagedResultDto {
+  items: MaterialTypeDto[]
   totalCount: number
 }
 
@@ -1122,6 +753,96 @@ export interface NameValue {
   value: string
 }
 
+export interface NodeDto {
+  extraProperties?: {}
+  id: string
+  nodeTypeId?: string
+  name: string
+  remark: string
+  nodeType?: NodeTypeDto
+  rank: number
+  materialTypes: NodeMaterialTypeDto[]
+}
+
+export interface NodeDtoPagedResultDto {
+  items: NodeDto[]
+  totalCount: number
+}
+
+export interface NodeMaterialTypeDto {
+  extraProperties?: {}
+  id: string
+  materialTypeId: string
+  nodeId: string
+  nodeName: string
+  name: string
+  materialTypeCode: string
+  materialTypeName: string
+  materialTypeCategory: string
+  materialTypeRemark: string
+  remark: string
+  rank: number
+  type: string
+  flowType: string
+  value: number
+  maxValue?: number
+  minValue?: number
+  equipmentNumber: number
+  singleValue?: number
+  stateItems: NodeMaterialTypeStateDto[]
+}
+
+export interface NodeMaterialTypeDtoPagedResultDto {
+  items: NodeMaterialTypeDto[]
+  totalCount: number
+}
+
+export interface NodeMaterialTypeStateDto {
+  id: string
+  nodeId: string
+  materialTypeId: string
+  nodeMaterialTypeId: string
+  state: string
+  value: number
+  singleValue?: number
+  expression: string
+  parameterType?: ParameterType
+  startDelayTime: number
+  endDelayTime: number
+  startTransitionTime: number
+  endTransitionTime: number
+}
+
+export interface NodePropertyDto {
+  nodeId: string
+  propertyCode: string
+  deviceId: string
+  tagId: string
+  onlyOnce: boolean
+  nodeName: string
+  rank: number
+}
+
+export interface NodePropertyDtoPagedResultDto {
+  items: NodePropertyDto[]
+  totalCount: number
+}
+
+export interface NodeTypeDto {
+  extraProperties?: {}
+  id: string
+  name: string
+  code: string
+  category: string
+  remark: string
+  rank: number
+}
+
+export interface NodeTypeDtoPagedResultDto {
+  items: NodeTypeDto[]
+  totalCount: number
+}
+
 export interface ObjectExtensionsDto {
   modules?: {}
   enums?: {}
@@ -1140,6 +861,8 @@ export interface ParameterApiDescriptionModel {
   descriptorName: string
 }
 
+export type ParameterType = 'Constant' | 'Decrease' | 'DecreasePercent' | 'Formula'
+
 export interface PermissionGrantInfoDto {
   name: string
   displayName: string
@@ -1155,81 +878,6 @@ export interface PermissionGroupDto {
   permissions: PermissionGrantInfoDto[]
 }
 
-export interface ProcessCardDataDto {
-  process: string
-  cardId: string
-  card?: ProcessCardDto
-  indexId: string
-  cardIndex?: ProcessCardIndexDto
-  textValue: string
-  aim: number
-  max: number
-  min: number
-  rank: number
-}
-
-export interface ProcessCardDto {
-  extraProperties?: {}
-  id: string
-  creationTime: string
-  creatorId?: string
-  lastModificationTime?: string
-  lastModifierId?: string
-  sourceMapId: string
-  cardNo: string
-  steelType: string
-  grade: string
-  standard: string
-  remark: string
-  isActive: boolean
-  version: string
-  beginDate: string
-  endDate: string
-  cardData: ProcessCardDataDto[]
-}
-
-export interface ProcessCardDtoPagedResultDto {
-  items: ProcessCardDto[]
-  totalCount: number
-}
-
-export interface ProcessCardIndexDto {
-  sourceMapId: string
-  sampleMapCode: string
-  code: string
-  name: string
-  category: string
-  subcategory: string
-  remark: string
-  unit: string
-  valueType: 'String' | 'Boolean' | 'Integer' | 'Float' | 'DateTime'
-}
-
-export interface ProductionPlanDto {
-  extraProperties?: {}
-  id: string
-  creationTime: string
-  creatorId?: string
-  lastModificationTime?: string
-  lastModifierId?: string
-  masterPlanId: string
-  castId: string
-  steelType: string
-  refinePath: string
-  planTapWeight: number
-  planPourWeight: number
-  slabThick: number
-  slabWidth: number
-  slabLen: number
-  planDate: string
-  isActive: boolean
-}
-
-export interface ProductionPlanDtoPagedResultDto {
-  items: ProductionPlanDto[]
-  totalCount: number
-}
-
 export interface ProfileDto {
   extraProperties?: {}
   userName: string
@@ -1239,6 +887,7 @@ export interface ProfileDto {
   phoneNumber: string
   isExternal: boolean
   hasPassword: boolean
+  concurrencyStamp: string
 }
 
 export interface PropertyApiDescriptionModel {
@@ -1249,10 +898,61 @@ export interface PropertyApiDescriptionModel {
   isRequired: boolean
 }
 
+export interface PropertyDefinitionDto {
+  id: string
+  name: string
+  code: string
+  remark: string
+  category: string
+  unit: string
+  defaultValue: string
+  valueType: string
+  source: string
+  rank: number
+}
+
+export interface PropertyDefinitionDtoPagedResultDto {
+  items: PropertyDefinitionDto[]
+  totalCount: number
+}
+
+export interface PropertyDto {
+  id: string
+  entityType: string
+  entityId: string
+  propertyDefinitionId: string
+  isMain: boolean
+  value: string
+  maxValue?: number
+  minValue?: number
+  name: string
+  code: string
+  remark: string
+  category: string
+  unit: string
+  defaultValue: string
+  valueType: string
+  source: string
+}
+
+export interface PropertyDtoPagedResultDto {
+  items: PropertyDto[]
+  totalCount: number
+}
+
 export interface ProviderInfoDto {
   providerName: string
   providerKey: string
 }
+
+export interface RankValueDto {
+  deviceId: string
+  value: number
+  nodeId: string
+  nodeName: string
+}
+
+export type ReadMode = 'Read' | 'Write' | 'ReadWrite'
 
 export interface RegisterDto {
   extraProperties?: {}
@@ -1291,194 +991,13 @@ export interface ReturnValueApiDescriptionModel {
 }
 
 export interface SampleDto {
-  extraProperties?: {}
-  id: string
-  creationTime: string
-  creatorId?: string
-  lastModificationTime?: string
-  lastModifierId?: string
-  sourceMapId: string
-  heatNo: string
-  rank: number
-  steelType: string
-  kind: 'Iron' | 'Steel' | 'Slug'
-  machine: string
-  chemC?: number
-  chemN?: number
-  chemP?: number
-  chemS?: number
-  chemSi?: number
-  chemMn?: number
-  chemCa?: number
-  chemAl?: number
-  chemCu?: number
-  chemB?: number
-  chemSn?: number
-  chemBi?: number
-  chemAs?: number
-  chemMo?: number
-  chemZn?: number
-  chemV?: number
-  chemZr?: number
-  chemTi?: number
-  chemNi?: number
-  chemNb?: number
-  chemFb?: number
-  chemFal?: number
-  chemCr?: number
-  chemCo?: number
-  chemBsol?: number
-  chemBoxy?: number
-  chemAlsol?: number
-  chemAloxy?: number
-  chemAlins?: number
-  remark: string
-  eventTime: string
-}
-
-export interface SampleDtoPagedResultDto {
-  items: SampleDto[]
-  totalCount: number
-}
-
-export interface SaveAdditionDto {
-  heatNo: string
-  materialId: string
-  weight: number
-  eventTime: string
-}
-
-export interface SaveAuxMaterialDto {
-  name: string
-  code: string
-  remark: string
-  category: string
-  subcategory: string
+  value: number
 }
 
 export interface SaveBackgroundWorkerInstanceDto {
   remark: string
   status: number
   cronExpression: string
-}
-
-export interface SaveCraneDto {
-  code: string
-  name: string
-  remark: string
-  isActive: boolean
-  rank: number
-  kind: 'Crane' | 'Trolley'
-  astrideNo: string
-  astrideName: string
-  xStart: number
-  yStart: number
-  xEnd: number
-  yEnd: number
-}
-
-export interface SaveDriverSettingsDto {
-  driverId: string
-  settings?: {}
-}
-
-export interface SaveIronBagDto {
-  hotNo: string
-  bagNo: string
-  weight: number
-  arrivalTime: string
-  heatNo: string
-  usedTime?: string
-  mixed: boolean
-  confirmed: boolean
-  confirmTime?: string
-}
-
-export interface SaveJobPlansInput {
-  items: JobPlanInput[]
-}
-
-export interface SaveMachineCardDto {
-  name: string
-  shortName: string
-  code: string
-  station: string
-  process: string
-  rank: number
-  remark: string
-  isActive: boolean
-  sourceMapCode: string
-}
-
-export interface SaveMachineDto {
-  name: string
-  shortName: string
-  code: string
-  station: string
-  process: string
-  rank: number
-  remark: string
-  isActive: boolean
-  sourceMapCode: string
-}
-
-export interface SaveMaintenancePlanDto {
-  name: string
-  shortName: string
-  code: string
-  station: string
-  process: string
-  rank: number
-  remark: string
-  isActive: boolean
-  sourceMapCode: string
-}
-
-export interface SaveMasterProductionPlanDto {
-  msc: string
-  castId: string
-  steelType: string
-  hotSendPlan: string
-  carryPlan: string
-  planDate: string
-  planCount: number
-  weight: number
-  length: number
-}
-
-export interface SaveProcessCardDto {
-  name: string
-  shortName: string
-  code: string
-  station: string
-  process: string
-  rank: number
-  remark: string
-  isActive: boolean
-  sourceMapCode: string
-}
-
-export interface SaveProductionPlanDto {
-  masterPlanId: string
-  castId: string
-  steelType: string
-  refinePath: string
-  planTapWeight: number
-  planPourWeight: number
-  slabThick: number
-  slabWidth: number
-  slabLen: number
-  planDate: string
-}
-
-export interface SaveSampleDto {
-  sourceMapId: string
-  heatNo: string
-  rank: number
-  steelType: string
-  kind: 'Iron' | 'Steel' | 'Slug'
-  machine: string
-  eventTime: string
 }
 
 export interface SendPasswordResetCodeDto {
@@ -1488,17 +1007,14 @@ export interface SendPasswordResetCodeDto {
   returnUrlHash: string
 }
 
-export interface StartJobPlanInput {
-  jobPlanId: string
-  startTime: string
-}
-
-export interface SwapJobPlansInput {
-  jobPlanId1: string
-  jobPlanId2: string
+export interface StatisticItem {
+  active: number
+  inactive: number
+  amount: number
 }
 
 export interface TagDefinitionDto {
+  extraProperties?: {}
   id: string
   creationTime: string
   creatorId?: string
@@ -1510,11 +1026,12 @@ export interface TagDefinitionDto {
   expression: string
   unit: string
   scale?: number
-  valueType: 'String' | 'Boolean' | 'Int' | 'Float' | 'Json'
+  valueType?: TagValueType
   rank: number
   interval?: number
   valueLength: number
-  readMode: 'Read' | 'Write' | 'ReadWrite'
+  readMode?: ReadMode
+  parentId?: string
 }
 
 export interface TagDefinitionDtoPagedResultDto {
@@ -1538,13 +1055,35 @@ export interface TagDto {
   deviceName: string
   isActive: boolean
   rank: number
-  tagType: 'IO' | 'User' | 'Computing' | 'System'
+  tagType?: TagType
   tagDefinition?: TagDefinitionDto
 }
 
 export interface TagDtoPagedResultDto {
   items: TagDto[]
   totalCount: number
+}
+
+export interface TagRealMeasurementDto {
+  timestamp: string
+  nodeId: string
+  nodeName: string
+  rank: number
+  deviceId: string
+  pressure: number
+  flow: number
+  flowAcc: number
+  temperature: number
+}
+
+export type TagType = 'IO' | 'User' | 'Computing' | 'System'
+
+export interface TagValueAggrMeasurementDto {
+  deviceId: string
+  eventTime: string
+  value: number
+  nodeId: string
+  nodeName: string
 }
 
 export interface TagValueDto {
@@ -1562,6 +1101,8 @@ export interface TagValueDtoPagedResultDto {
   totalCount: number
 }
 
+export type TagValueType = 'String' | 'Boolean' | 'Int' | 'Float' | 'Json'
+
 export interface TenantCreateDto {
   extraProperties?: {}
   name: string
@@ -1573,6 +1114,7 @@ export interface TenantDto {
   extraProperties?: {}
   id: string
   name: string
+  concurrencyStamp: string
 }
 
 export interface TenantDtoPagedResultDto {
@@ -1583,20 +1125,12 @@ export interface TenantDtoPagedResultDto {
 export interface TenantUpdateDto {
   extraProperties?: {}
   name: string
+  concurrencyStamp: string
 }
 
-export interface TimeSpan {
-  ticks: number
-  days: number
-  hours: number
-  milliseconds: number
-  minutes: number
-  seconds: number
-  totalDays: number
-  totalHours: number
-  totalMilliseconds: number
-  totalMinutes: number
-  totalSeconds: number
+export interface TimeValueDto {
+  eventTime: string
+  value: number
 }
 
 export interface TimeZone {
@@ -1617,16 +1151,11 @@ export interface TypeApiDescriptionModel {
   properties: PropertyApiDescriptionModel[]
 }
 
-export interface UpdateChannelDto {
-  name: string
-  remark: string
+export interface UpdateAppTreeNodeDto {
+  parentId?: string
+  displayName: string
   rank: number
-  host: string
-  port: string
-  userName: string
-  password: string
-  channelType: 'Network' | 'SerialPort' | 'Database'
-  isActive: boolean
+  icon: string
 }
 
 export interface UpdateDeviceDto {
@@ -1634,16 +1163,11 @@ export interface UpdateDeviceDto {
   name: string
   remark: string
   rank: number
-  isActive: boolean
   locationId?: string
   parentId?: string
-  deviceKey: string
-  deviceSecret: string
-  accessToken: string
-  ipAddress: string
-  apiUrl: string
-  serverApiUrl: string
 }
+
+export interface UpdateDriverDefinitionDto {}
 
 export interface UpdateDriverDto {
   title: string
@@ -1655,14 +1179,32 @@ export interface UpdateDriverDto {
   interval?: number
   timeout?: number
   retryCount?: number
-  state: 'Stop' | 'Running' | 'Pause'
+}
+
+export interface UpdateDriverSettingsDto {
+  settings?: {}
 }
 
 export interface UpdateDriverTagDto {
-  driverId: string
   tagId: string
   address: string
   remark: string
+}
+
+export interface UpdateEmailSettingsDto {
+  smtpHost: string
+  smtpPort: number
+  smtpUserName: string
+  smtpPassword: string
+  smtpDomain: string
+  smtpEnableSsl: boolean
+  smtpUseDefaultCredentials: boolean
+  defaultFromAddress: string
+  defaultFromDisplayName: string
+}
+
+export interface UpdateExtraPropertiesDto {
+  extraProperties?: {}
 }
 
 export interface UpdateFeatureDto {
@@ -1674,22 +1216,49 @@ export interface UpdateFeaturesDto {
   features: UpdateFeatureDto[]
 }
 
-export interface UpdateLadleDto {
+export interface UpdateMaterialTypeDto {
   name: string
-  ladleType: string
-  age: number
   code: string
-  lifeCount: number
-  manufacturer: string
-  isActive: boolean
+  category: string
   remark: string
+  rank: number
 }
 
-export interface UpdateLocationDto {
+export interface UpdateNodeDto {
+  nodeTypeId?: string
   name: string
   remark: string
   rank: number
-  parentId?: string
+}
+
+export interface UpdateNodeMaterialTypeDto {
+  id: string
+  nodeId: string
+  name: string
+  nodeName: string
+  flowType: string
+  remark: string
+  rank: number
+  type: string
+  value: number
+  maxValue?: number
+  minValue?: number
+  equipmentNumber: number
+  singleValue?: number
+}
+
+export interface UpdateNodePropertyDto {
+  nodeId: string
+  propertyCode: string
+  tagId: string
+}
+
+export interface UpdateNodeTypeDto {
+  name: string
+  code: string
+  category: string
+  remark: string
+  rank: number
 }
 
 export interface UpdatePermissionDto {
@@ -1708,6 +1277,23 @@ export interface UpdateProfileDto {
   name: string
   surname: string
   phoneNumber: string
+  concurrencyStamp: string
+}
+
+export interface UpdatePropertyDefinitionDto {
+  name: string
+  remark: string
+  category: string
+  unit: string
+  valueType: string
+  source: string
+}
+
+export interface UpdatePropertyDto {
+  isMain: boolean
+  value: string
+  maxValue?: number
+  minValue?: number
 }
 
 export interface UpdateTagDefinitionDto {
@@ -1716,25 +1302,23 @@ export interface UpdateTagDefinitionDto {
   remark: string
   unit: string
   scale?: number
-  valueType: 'String' | 'Boolean' | 'Int' | 'Float' | 'Json'
+  valueType?: TagValueType
   rank: number
   interval?: number
-  readMode: 'Read' | 'Write' | 'ReadWrite'
+  readMode?: ReadMode
+  parentId?: string
 }
 
 export interface UpdateTagDto {
-  dataSource: string
-  address: string
   interval?: number
+  name: string
   deviceId?: string
-  readMode: 'Read' | 'Write' | 'ReadWrite'
-  channelId: string
-  sourceTag: string
+  readMode?: ReadMode
   isActive: boolean
   remark: string
   rank: number
-  tagType: 'IO' | 'User' | 'Computing' | 'System'
-  tagDefinitionCode: string
+  tagType?: TagType
+  expression: string
   tagDefinitionId: string
 }
 

@@ -1,14 +1,14 @@
 import request from '@/utils/request'
-import type { BackgroundWorkerLogDto, BackgroundWorkerLogDtoPagedResultDto } from './definitions'
+import type { BackgroundWorkerLogDto, BackgroundWorkerLogDtoPagedResultDto, LogLevel } from './definitions'
 
-export interface GetListQueryDto {
+export interface BackgroundWorkerLogGetListQuery {
   start?: string
   end?: string
   instanceId?: string
-  category?: 'Info' | 'Warn' | 'Error'
   sorting?: string
   skipCount?: number
   maxResultCount?: number
+  category?: LogLevel
 }
 export default class BackgroundWorkerLogService {
   static async get(id: string) {
@@ -18,7 +18,7 @@ export default class BackgroundWorkerLogService {
     })
   }
 
-  static async getList(query: GetListQueryDto) {
+  static async getList(query: BackgroundWorkerLogGetListQuery) {
     const url = '/api/background/background-worker-log'
     return request<BackgroundWorkerLogDtoPagedResultDto>(url, {
       method: 'get',

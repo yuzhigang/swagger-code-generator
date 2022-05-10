@@ -1,12 +1,18 @@
 import request from '@/utils/request'
-import type { ChannelDto, CreateChannelDto, ChannelDtoPagedResultDto, UpdateChannelDto } from './definitions'
+import type {
+  ChannelDto,
+  CreateChannelDto,
+  ChannelDtoPagedResultDto,
+  ChannelType,
+  UpdateChannelDto
+} from './definitions'
 
-export interface GetListQueryDto {
+export interface ChannelGetListQuery {
   isActive?: boolean
-  channelType?: 'Network' | 'SerialPort' | 'Database'
   sorting?: string
   skipCount?: number
   maxResultCount?: number
+  channelType?: ChannelType
 }
 export default class ChannelService {
   static async create(input: CreateChannelDto) {
@@ -17,7 +23,7 @@ export default class ChannelService {
     })
   }
 
-  static async getList(query: GetListQueryDto) {
+  static async getList(query: ChannelGetListQuery) {
     const url = '/api/gateway/channel'
     return request<ChannelDtoPagedResultDto>(url, {
       method: 'get',

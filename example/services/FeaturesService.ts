@@ -1,16 +1,16 @@
 import request from '@/utils/request'
 import type { GetFeatureListResultDto, UpdateFeaturesDto } from './definitions'
 
-export interface GetQueryDto {
+export interface FeaturesGetQuery {
   providerName?: string
   providerKey?: string
 }
-export interface UpdateQueryDto {
+export interface FeaturesUpdateQuery {
   providerName?: string
   providerKey?: string
 }
 export default class FeaturesService {
-  static async get(query: GetQueryDto) {
+  static async get(query: FeaturesGetQuery) {
     const url = '/api/feature-management/features'
     return request<GetFeatureListResultDto>(url, {
       method: 'get',
@@ -18,7 +18,7 @@ export default class FeaturesService {
     })
   }
 
-  static async update(query: UpdateQueryDto, input: UpdateFeaturesDto) {
+  static async update(query: FeaturesUpdateQuery, input: UpdateFeaturesDto) {
     const url = '/api/feature-management/features'
     return request(url, {
       method: 'put',

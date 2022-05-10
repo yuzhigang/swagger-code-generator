@@ -2,32 +2,26 @@ import AbpApiDefinitionService from './AbpApiDefinitionService'
 import AbpApplicationConfigurationService from './AbpApplicationConfigurationService'
 import AbpTenantService from './AbpTenantService'
 import AccountService from './AccountService'
-import AdditionService from './AdditionService'
-import AuditLogService from './AuditLogService'
+import AppTreeNodeService from './AppTreeNodeService'
 import BackgroundWorkerInstanceService from './BackgroundWorkerInstanceService'
 import BackgroundWorkerLogService from './BackgroundWorkerLogService'
-import ChannelService from './ChannelService'
-import CraneService from './CraneService'
+import DashboardService from './DashboardService'
 import DeviceService from './DeviceService'
 import DriverService from './DriverService'
+import DriverDefinitionService from './DriverDefinitionService'
+import EmailSettingsService from './EmailSettingsService'
 import FeaturesService from './FeaturesService'
-import HeatPlanService from './HeatPlanService'
-import IronBagService from './IronBagService'
-import JobPlanService from './JobPlanService'
-import LadleService from './LadleService'
-import LadleRecordService from './LadleRecordService'
-import LadleStateService from './LadleStateService'
-import LocationService from './LocationService'
 import LoginService from './LoginService'
-import MachineService from './MachineService'
-import MachineCardService from './MachineCardService'
-import MaintenancePlanService from './MaintenancePlanService'
-import MasterProductionPlanService from './MasterProductionPlanService'
-import MaterialService from './MaterialService'
+import MaterialTypeService from './MaterialTypeService'
+import MeasurementService from './MeasurementService'
+import NodeService from './NodeService'
+import NodePropertyService from './NodePropertyService'
+import NodeTypeService from './NodeTypeService'
 import PermissionsService from './PermissionsService'
-import ProcessCardService from './ProcessCardService'
-import ProductionPlanService from './ProductionPlanService'
 import ProfileService from './ProfileService'
+import PropertyService from './PropertyService'
+import PropertyDefinitionService from './PropertyDefinitionService'
+import RealTimeService from './RealTimeService'
 import RoleService from './RoleService'
 import SampleService from './SampleService'
 import TagService from './TagService'
@@ -42,32 +36,26 @@ export default {
   AbpApplicationConfigurationService,
   AbpTenantService,
   AccountService,
-  AdditionService,
-  AuditLogService,
+  AppTreeNodeService,
   BackgroundWorkerInstanceService,
   BackgroundWorkerLogService,
-  ChannelService,
-  CraneService,
+  DashboardService,
   DeviceService,
   DriverService,
+  DriverDefinitionService,
+  EmailSettingsService,
   FeaturesService,
-  HeatPlanService,
-  IronBagService,
-  JobPlanService,
-  LadleService,
-  LadleRecordService,
-  LadleStateService,
-  LocationService,
   LoginService,
-  MachineService,
-  MachineCardService,
-  MaintenancePlanService,
-  MasterProductionPlanService,
-  MaterialService,
+  MaterialTypeService,
+  MeasurementService,
+  NodeService,
+  NodePropertyService,
+  NodeTypeService,
   PermissionsService,
-  ProcessCardService,
-  ProductionPlanService,
   ProfileService,
+  PropertyService,
+  PropertyDefinitionService,
+  RealTimeService,
   RoleService,
   SampleService,
   TagService,

@@ -3,14 +3,14 @@ import type { ProfileDto, UpdateProfileDto, ChangePasswordInput } from './defini
 
 export default class ProfileService {
   static async get() {
-    const url = '/api/identity/my-profile'
+    const url = '/api/account/my-profile'
     return request<ProfileDto>(url, {
       method: 'get'
     })
   }
 
   static async update(input: UpdateProfileDto) {
-    const url = '/api/identity/my-profile'
+    const url = '/api/account/my-profile'
     return request<ProfileDto>(url, {
       method: 'put',
       data: input
@@ -18,7 +18,7 @@ export default class ProfileService {
   }
 
   static async changePassword(input: ChangePasswordInput) {
-    const url = '/api/identity/my-profile/change-password'
+    const url = '/api/account/my-profile/change-password'
     return request(url, {
       method: 'post',
       data: input

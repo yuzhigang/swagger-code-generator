@@ -1,16 +1,16 @@
 import request from '@/utils/request'
 import type { GetPermissionListResultDto, UpdatePermissionsDto } from './definitions'
 
-export interface GetQueryDto {
+export interface PermissionsGetQuery {
   providerName?: string
   providerKey?: string
 }
-export interface UpdateQueryDto {
+export interface PermissionsUpdateQuery {
   providerName?: string
   providerKey?: string
 }
 export default class PermissionsService {
-  static async get(query: GetQueryDto) {
+  static async get(query: PermissionsGetQuery) {
     const url = '/api/permission-management/permissions'
     return request<GetPermissionListResultDto>(url, {
       method: 'get',
@@ -18,7 +18,7 @@ export default class PermissionsService {
     })
   }
 
-  static async update(query: UpdateQueryDto, input: UpdatePermissionsDto) {
+  static async update(query: PermissionsUpdateQuery, input: UpdatePermissionsDto) {
     const url = '/api/permission-management/permissions'
     return request(url, {
       method: 'put',

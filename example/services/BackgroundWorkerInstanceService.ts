@@ -5,7 +5,7 @@ import type {
   BackgroundWorkerInstanceDtoPagedResultDto
 } from './definitions'
 
-export interface GetListQueryDto {
+export interface BackgroundWorkerInstanceGetListQuery {
   key?: string
   status?: number
   sorting?: string
@@ -13,41 +13,6 @@ export interface GetListQueryDto {
   maxResultCount?: number
 }
 export default class BackgroundWorkerInstanceService {
-  static async runOnce(workerId: string) {
-    const url = `/api/background/background-worker-instance/run-once/${workerId}`
-    return request(url, {
-      method: 'post'
-    })
-  }
-
-  static async start(instanceId: string) {
-    const url = `/api/background/background-worker-instance/start/${instanceId}`
-    return request(url, {
-      method: 'post'
-    })
-  }
-
-  static async startAll() {
-    const url = '/api/background/background-worker-instance/start-all'
-    return request(url, {
-      method: 'post'
-    })
-  }
-
-  static async stop(instanceId: string) {
-    const url = `/api/background/background-worker-instance/stop/${instanceId}`
-    return request(url, {
-      method: 'post'
-    })
-  }
-
-  static async stopAll() {
-    const url = '/api/background/background-worker-instance/stop-all'
-    return request(url, {
-      method: 'post'
-    })
-  }
-
   static async create(input: SaveBackgroundWorkerInstanceDto) {
     const url = '/api/background/background-worker-instance'
     return request<BackgroundWorkerInstanceDto>(url, {
@@ -56,7 +21,7 @@ export default class BackgroundWorkerInstanceService {
     })
   }
 
-  static async getList(query: GetListQueryDto) {
+  static async getList(query: BackgroundWorkerInstanceGetListQuery) {
     const url = '/api/background/background-worker-instance'
     return request<BackgroundWorkerInstanceDtoPagedResultDto>(url, {
       method: 'get',

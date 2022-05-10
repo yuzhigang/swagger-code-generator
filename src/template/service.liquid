@@ -7,10 +7,13 @@ import type {
 
 {% comment %} 定义query的类型 {% endcomment %}
 {%- for p in paths %}
- {%- if p.queryParams.length > 0 -%}
-    export interface {{p.operationId | ucFirst }}QueryDto {
+ {%- if p.queryParams.length > 0 || p.queryRefs.length > 0  -%}
+    export interface {{name}}{{p.operationId | ucFirst }}Query {
         {%- for queryParam in p.queryParams -%}
           {{queryParam.name}}{% unless queryParam.required %}?{% endunless %}:{{queryParam.modelType}}
+        {% endfor %}
+        {%- for queryRef in p.queryRefs -%}
+          {{queryRef.name}}{% unless queryRef.required %}?{% endunless %}:{{queryRef.modelType}}
         {% endfor %}
       }
   {%- endif -%}
@@ -24,11 +27,11 @@ export default class {{name}}Service {
        {%- endfor -%}
 
       {%- if p.queryParams.length > 0 -%}
-      query: {{p.operationId | ucFirst }}QueryDto,
+      query: {{name}}{{p.operationId | ucFirst }}Query,
       {%- endif -%}
-      {%- if p.queryRefs.length > 0 -%}
+      {% comment %} {%- if p.queryRefs.length > 0 -%}
         query: {{ p.queryRefs | join: " & " }},
-      {%- endif -%}
+      {%- endif -%} {% endcomment %}
       {%- for bodyParam in p.bodyParams -%}
       {{bodyParam.name}}: {{bodyParam.modelType}}
      {%- endfor -%}

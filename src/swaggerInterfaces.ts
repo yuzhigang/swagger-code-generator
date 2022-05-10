@@ -22,7 +22,7 @@ export interface IPath {
   responseType: string
   pathParams?: IParameter[]
   queryParams?: IParameter[]
-  queryRefs?: string[] // 多个查询参数合并成一个定义type的参数，schema含有ref的parameter
+  queryRefs?: IParameter[] // 多个查询参数合并成一个定义type的参数，schema含有ref的parameter
   bodyParams?: IParameter[]
 }
 
